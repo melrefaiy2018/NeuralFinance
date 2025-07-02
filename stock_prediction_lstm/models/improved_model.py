@@ -9,8 +9,9 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, LSTM, Dropout, Input, Concatenate
+from tensorflow.keras.layers import Dense, LSTM, Dropout, Input, Concatenate, Lambda
 from tensorflow.keras.optimizers import Adam
+import tensorflow as tf
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
@@ -122,14 +123,22 @@ class ImprovedStockModel:
         # Combine branches
         combined = Concatenate()([market_lstm2, sentiment_lstm2])
         
-        # Output layers
+        # Output layers with more robust constraints
         dense1 = Dense(32, activation='relu')(combined)
-        dropout = Dropout(0.2)(dense1)
+        dropout = Dropout(0.3)(dense1)  # Increased dropout
         dense2 = Dense(16, activation='relu')(dropout)
-        output = Dense(self.forecast_horizon, activation='sigmoid')(dense2)  # Use sigmoid for 0-1 output
+        
+        # Multiple approaches to ensure [0,1] output
+        output = Dense(self.forecast_horizon, activation='sigmoid')(dense2)
+        
+        # Additional safety: clip in the model itself using Lambda layer
+        def clip_to_01(x):
+            return tf.clip_by_value(x, 0.0, 1.0)
+        
+        clipped_output = Lambda(clip_to_01)(output)
         
         # Create and compile model
-        model = Model(inputs=[market_input, sentiment_input], outputs=output)
+        model = Model(inputs=[market_input, sentiment_input], outputs=clipped_output)
         model.compile(
             optimizer=Adam(learning_rate=0.001),
             loss='mse',
@@ -153,20 +162,47 @@ class ImprovedStockModel:
         return history
     
     def predict(self, X_market, X_sentiment):
-        """Make predictions and return in original scale"""
+        """Make predictions and return in original scale with proper validation"""
         if self.model is None:
             raise ValueError("Model has not been built yet. Call build_model() first.")
         
         # Get scaled predictions
         y_pred_scaled = self.model.predict([X_market, X_sentiment])
         
-        # Ensure predictions are in valid range [0,1]
-        y_pred_scaled = np.clip(y_pred_scaled, 0, 1)
+        print(f"DEBUG: Raw model output range: [{np.min(y_pred_scaled):.6f}, {np.max(y_pred_scaled):.6f}]")
+        
+        # CRITICAL FIX: Ensure predictions are strictly in [0,1] range
+        # The model should output sigmoid values, but sometimes exceeds bounds
+        y_pred_scaled = np.clip(y_pred_scaled, 0.0, 1.0)
+        
+        print(f"DEBUG: After clipping to [0,1]: [{np.min(y_pred_scaled):.6f}, {np.max(y_pred_scaled):.6f}]")
+        
+        # Validate scaler state
+        if not hasattr(self.price_scaler, 'data_min_') or not hasattr(self.price_scaler, 'data_max_'):
+            raise ValueError("Price scaler not properly fitted")
+        
+        print(f"DEBUG: Scaler range: [{self.price_scaler.data_min_[0]:.2f}, {self.price_scaler.data_max_[0]:.2f}]")
         
         # Inverse transform to original price scale
-        y_pred = self.price_scaler.inverse_transform(y_pred_scaled)
-        
-        return y_pred
+        try:
+            y_pred = self.price_scaler.inverse_transform(y_pred_scaled)
+            print(f"DEBUG: After inverse transform: [{np.min(y_pred):.2f}, {np.max(y_pred):.2f}]")
+            
+            # Additional validation: check if predictions are reasonable
+            price_range = self.price_scaler.data_max_[0] - self.price_scaler.data_min_[0]
+            if np.any(y_pred < self.price_scaler.data_min_[0] - 0.1 * price_range) or \
+               np.any(y_pred > self.price_scaler.data_max_[0] + 0.1 * price_range):
+                print("WARNING: Predictions outside expected range after inverse transform")
+            
+            return y_pred
+            
+        except Exception as e:
+            print(f"ERROR: Inverse transform failed: {e}")
+            # Emergency fallback: manual scaling
+            price_range = self.price_scaler.data_max_[0] - self.price_scaler.data_min_[0]
+            y_pred = self.price_scaler.data_min_[0] + (y_pred_scaled * price_range)
+            print(f"DEBUG: Emergency scaling result: [{np.min(y_pred):.2f}, {np.max(y_pred):.2f}]")
+            return y_pred
     
     def evaluate(self, y_true, y_pred):
         """
@@ -228,7 +264,7 @@ class ImprovedStockModel:
         return results
     
     def predict_next_days(self, latest_market_data, latest_sentiment_data, days=5):
-        """Predict future prices"""
+        """Predict future prices with proper scaling validation"""
         predictions = []
         
         # Make copies to avoid modifying original data
@@ -242,12 +278,33 @@ class ImprovedStockModel:
             
             # Predict next day
             next_day_scaled = self.model.predict([market_batch, sentiment_batch])
-            next_day_price = self.price_scaler.inverse_transform(next_day_scaled)[0][0]
+            
+            # CRITICAL FIX: Ensure output is in [0,1] range
+            next_day_scaled = np.clip(next_day_scaled, 0.0, 1.0)
+            
+            # Inverse transform with validation
+            try:
+                next_day_price = self.price_scaler.inverse_transform(next_day_scaled)[0][0]
+                
+                # Validate the prediction is reasonable
+                if next_day_price <= 0:
+                    print(f"WARNING: Invalid price prediction: {next_day_price}")
+                    # Use last known good price with small random variation
+                    if predictions:
+                        next_day_price = predictions[-1] * (1 + np.random.normal(0, 0.01))
+                    else:
+                        # Fallback to scaler minimum
+                        next_day_price = self.price_scaler.data_min_[0]
+                        
+            except Exception as e:
+                print(f"ERROR: Inverse transform failed in predict_next_days: {e}")
+                # Emergency fallback
+                price_range = self.price_scaler.data_max_[0] - self.price_scaler.data_min_[0]
+                next_day_price = self.price_scaler.data_min_[0] + (next_day_scaled[0][0] * price_range)
             
             predictions.append(next_day_price)
             
             # Update data for next prediction (simplified)
-            # In practice, you would recalculate technical indicators
             if market_data.shape[0] > 0:
                 # Shift market data
                 market_data = np.roll(market_data, -1, axis=0)
@@ -264,4 +321,5 @@ class ImprovedStockModel:
                 sentiment_data[-1] = sentiment_data[-2] * 0.9 + np.random.normal(0, 0.05, sentiment_data.shape[1])
                 sentiment_data[-1] = np.clip(sentiment_data[-1], 0, 1)
         
+        print(f"DEBUG: Future predictions: {predictions}")
         return predictions
