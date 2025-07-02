@@ -3,9 +3,6 @@ import yfinance as yf
 from typing import Optional
 import time
 import threading
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 class StockDataFetcher:
     """
@@ -19,25 +16,17 @@ class StockDataFetcher:
         self.period = period
         self.interval = interval
         
-        self.session = requests.Session()
+        # Note: yfinance now handles its own session management
+        # Custom sessions are no longer supported in newer versions
         
-        retry_strategy = Retry(
-            total=3,
-            backoff_factor=1,
-            status_forcelist=[429, 500, 502, 503, 504],
-        )
-        
-        adapter = HTTPAdapter(max_retries=retry_strategy)
-        self.session.mount("http://", adapter)
-        self.session.mount("https://", adapter)
-        
+        # Temporarily disable cache manager to avoid infinite recursion
         self.storage_manager = None
-        try:
-            from data.storage.cache_manager import stock_data_manager
-            self.storage_manager = stock_data_manager
-        except ImportError:
-            # Fallback if storage is not available
-            pass
+        # try:
+        #     from data.storage.cache_manager import stock_data_manager
+        #     self.storage_manager = stock_data_manager
+        # except ImportError:
+        #     # Fallback if storage is not available
+        #     pass
     
     def fetch_data(self) -> Optional[pd.DataFrame]:
         """
@@ -98,14 +87,14 @@ class StockDataFetcher:
                     print(f"Waiting {wait_time} seconds before retry...")
                     time.sleep(wait_time)
                 
-                ticker = yf.Ticker(self.ticker_symbol, session=self.session)
+                ticker = yf.Ticker(self.ticker_symbol)
                 
                 df = ticker.history(
                     period=self.period, 
                     interval=self.interval,
                     auto_adjust=True,
-                    prepost=True,
-                    threads=False
+                    prepost=True
+                    # threads parameter is no longer supported in newer yfinance versions
                 )
                 
                 if not df.empty:
@@ -167,6 +156,7 @@ class StockDataFetcher:
         for col in numeric_columns:
             if col in df.columns:
                 df[col] = pd.to_numeric(df[col], errors='coerce')
-                df[col] = df[col].fillna(method='ffill').fillna(method='bfill')
+                # Use the newer fillna syntax to avoid deprecation warning
+                df[col] = df[col].ffill().bfill()
         
         return df

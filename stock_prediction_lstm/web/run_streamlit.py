@@ -16,13 +16,26 @@ sys.path.insert(0, parent_dir)
 sys.path.insert(0, project_root)
 
 if __name__ == "__main__":
+    print("🚀 Starting Stock AI Assistant...")
+    print(f"📁 Working directory: {current_dir}")
+    print(f"📦 Python path includes: {parent_dir}")
+    
     # Set environment variable for Python path
     env = os.environ.copy()
     pythonpath = env.get('PYTHONPATH', '')
     new_pythonpath = f"{parent_dir}:{project_root}:{pythonpath}" if pythonpath else f"{parent_dir}:{project_root}"
     env['PYTHONPATH'] = new_pythonpath
     
-    # Run streamlit with the proper environment
-    subprocess.run([
-        sys.executable, '-m', 'streamlit', 'run', 'streamlit_app.py'
-    ], cwd=current_dir, env=env)
+    print("🔧 Environment configured!")
+    print("🌐 Starting Streamlit server...")
+    
+    try:
+        # Run streamlit with the proper environment
+        subprocess.run([
+            sys.executable, '-m', 'streamlit', 'run', 'streamlit_app.py'
+        ], cwd=current_dir, env=env)
+    except KeyboardInterrupt:
+        print("\n👋 Stock AI Assistant stopped by user.")
+    except Exception as e:
+        print(f"\n❌ Error running Stock AI Assistant: {e}")
+        sys.exit(1)
