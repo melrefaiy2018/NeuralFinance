@@ -1,0 +1,2 @@
+[console_scripts]
+stock-predict = stock_prediction_lstm.cli.main:main

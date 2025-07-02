@@ -4,7 +4,22 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from datetime import timedelta
 import matplotlib
-matplotlib.use('Agg')
+import os
+import sys
+
+# Set matplotlib backend based on environment
+if 'DISPLAY' not in os.environ and sys.platform != 'darwin':
+    # Use non-interactive backend for headless environments
+    matplotlib.use('Agg')
+else:
+    # Try to use interactive backend for environments with display
+    try:
+        matplotlib.use('TkAgg')
+    except ImportError:
+        try:
+            matplotlib.use('Qt5Agg')
+        except ImportError:
+            matplotlib.use('Agg')
 
 def visualize_stock_data(df, ticker_symbol, output_dir=None):
     fig = plt.figure(figsize=(15, 20))
@@ -76,7 +91,7 @@ def visualize_stock_data(df, ticker_symbol, output_dir=None):
         from stock_prediction_lstm.core.utils import save_plot
         save_plot(fig, f"{ticker_symbol}_stock_data", output_dir)
     
-    plt.show()
+    _show_plot_safely(fig, f"{ticker_symbol}_stock_data", output_dir)
     
     return fig
 
@@ -151,7 +166,7 @@ def visualize_prediction_comparison(model, X_market_test, X_sentiment_test, y_te
         save_plot(fig, f"{ticker_symbol}_prediction_comparison", output_dir)
     
     plt.tight_layout()
-    plt.show()
+    _show_plot_safely(fig, f"{ticker_symbol}_prediction_comparison", output_dir)
     
     return fig
 
@@ -233,7 +248,7 @@ def visualize_future_predictions(future_prices, future_dates, df, ticker_symbol,
         save_plot(fig, f"{ticker_symbol}_future_predictions", output_dir)
     
     plt.tight_layout()
-    plt.show()
+    _show_plot_safely(fig, f"{ticker_symbol}_future_predictions", output_dir)
     
     return fig
 
@@ -263,7 +278,7 @@ def visualize_feature_importance(df, target_col='close', output_dir=None):
         save_plot(fig, "feature_importance", output_dir)
     
     plt.tight_layout()
-    plt.show()
+    _show_plot_safely(fig, "feature_importance", output_dir)
     
     return fig
 
@@ -312,6 +327,43 @@ def visualize_sentiment_impact(df, window=14, output_dir=None):
         save_plot(fig, "sentiment_impact", output_dir)
     
     plt.tight_layout()
-    plt.show()
+    _show_plot_safely(fig, "sentiment_impact", output_dir)
     
     return fig
+
+def _show_plot_safely(fig=None, filename=None, output_dir=None):
+    """
+    Show plot only if using an interactive backend, otherwise save it.
+    
+    Args:
+        fig: The matplotlib figure to handle (if None, uses current figure)
+        filename: Optional filename to save the plot when in non-interactive mode
+        output_dir: Optional directory to save the plot (if None, saves in current directory)
+    """
+    backend = matplotlib.get_backend().lower()
+    if 'agg' in backend:
+        # Non-interactive backend - optionally save the plot
+        if filename:
+            try:
+                import os
+                # Use current working directory if no output_dir specified
+                save_dir = output_dir if output_dir else os.getcwd()
+                os.makedirs(save_dir, exist_ok=True)
+                
+                if fig is None:
+                    fig = plt.gcf()
+                filepath = os.path.join(save_dir, f"{filename}.png")
+                fig.savefig(filepath, dpi=300, bbox_inches='tight')
+                print(f"Plot saved to: {filepath}")
+            except Exception as e:
+                print(f"Could not save plot: {e}")
+        else:
+            print("Plot generated (non-interactive mode - plot not displayed)")
+        plt.close()
+    else:
+        # Interactive backend - show the plot
+        try:
+            plt.show()
+        except Exception as e:
+            print(f"Could not display plot: {e}")
+            plt.close()
