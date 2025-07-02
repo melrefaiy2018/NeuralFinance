@@ -133,8 +133,11 @@ class SentimentAnalyzer:
                     print(f"✅ Success with {method_name}")
                     self.data_source = method_name
                     
-                    if "Synthetic" in method_name or "Price" in method_name or "Market" in method_name:
+                    # Only mark as synthetic for actual synthetic data methods
+                    if "Synthetic" in method_name or "Price-Technical Analysis" in method_name or "Market Trend Sentiment" in method_name:
                         self.using_synthetic_data = True
+                    else:
+                        self.using_synthetic_data = False
                     
                     # Cache successful results (except cached data itself)
                     if method_name != "Cached Data":

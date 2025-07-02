@@ -147,6 +147,9 @@ class StockDataFetcher:
         
         if 'date' in df.columns:
             df['date'] = pd.to_datetime(df['date'])
+            # Normalize to timezone-naive dates for consistent merging
+            if hasattr(df['date'].dtype, 'tz') and df['date'].dtype.tz is not None:
+                df['date'] = df['date'].dt.tz_localize(None)
         
         if 'date' in df.columns:
             df = df.drop_duplicates(subset=['date'])

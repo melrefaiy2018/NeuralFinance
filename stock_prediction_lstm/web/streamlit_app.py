@@ -601,6 +601,7 @@ if run_analysis:
         # Prepare data based on whether sentiment analysis is available
         if use_sentiment_analysis and sentiment_df is not None:
             # Merge stock data with sentiment data
+            # Both datasets now use timezone-naive dates for consistent merging
             combined_df = pd.merge(stock_df, sentiment_df, on='date', how='inner')
             st.info("📊 **Analysis Mode**: Using both technical indicators AND sentiment analysis")
         else:
