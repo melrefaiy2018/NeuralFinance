@@ -435,143 +435,156 @@ if run_analysis:
             end_date=stock_df['date'].max()
         )
         
-        # Check if synthetic data was used
+        # Check if real sentiment data was obtained
         using_synthetic_data = sentiment_analyzer.using_synthetic_data
+        use_sentiment_analysis = False
         
-        if sentiment_df is None:
-            st.warning("⚠️ Could not generate sentiment data. Proceeding with technical analysis only.")
-            # Create a dummy sentiment dataframe if we couldn't get real data
-            sentiment_df = pd.DataFrame({
-                'date': stock_df['date'],
-                'sentiment_positive': np.random.normal(0.6, 0.15, len(stock_df)),
-                'sentiment_negative': np.random.normal(0.3, 0.1, len(stock_df)),
-                'sentiment_neutral': np.random.normal(0.1, 0.05, len(stock_df))
-            })
-            # Normalize sentiment to sum to 1
-            for i in range(len(sentiment_df)):
-                total = (
-                    sentiment_df.loc[i, 'sentiment_positive'] + 
-                    sentiment_df.loc[i, 'sentiment_negative'] + 
-                    sentiment_df.loc[i, 'sentiment_neutral']
-                )
-                sentiment_df.loc[i, 'sentiment_positive'] /= total
-                sentiment_df.loc[i, 'sentiment_negative'] /= total
-                sentiment_df.loc[i, 'sentiment_neutral'] /= total
-        
-        st.markdown('<h2 class="sub-header">Market Sentiment Analysis</h2>', unsafe_allow_html=True)
-        
-        # Display warning if synthetic data is used
-        if using_synthetic_data:
-            st.warning("⚠️ Using synthetic sentiment data because real data fetch failed. Predictions may be less accurate.")
-        
-        # Calculate average sentiment
-        avg_pos = sentiment_df['sentiment_positive'].mean() * 100
-        avg_neg = sentiment_df['sentiment_negative'].mean() * 100
-        avg_neu = sentiment_df['sentiment_neutral'].mean() * 100
-        
-        # Display sentiment distribution in a nice gauge chart
-        st.markdown('<div class="card">', unsafe_allow_html=True)
-        col1, col2 = st.columns([2, 3])
-        
-        with col1:
-            # Create a gauge chart for sentiment
-            fig = go.Figure(go.Indicator(
-                mode = "gauge+number+delta",
-                value = avg_pos,
-                domain = {'x': [0, 1], 'y': [0, 1]},
-                title = {'text': "Positive Sentiment", 'font': {'size': 24}},
-                delta = {'reference': 50, 'increasing': {'color': "green"}},
-                gauge = {
-                    'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
-                    'bar': {'color': "green"},
-                    'bgcolor': "white",
-                    'borderwidth': 2,
-                    'bordercolor': "gray",
-                    'steps': [
-                        {'range': [0, 30], 'color': 'lightgray'},
-                        {'range': [30, 70], 'color': 'lightgreen'},
-                        {'range': [70, 100], 'color': 'darkgreen'}
-                    ],
-                    'threshold': {
-                        'line': {'color': "red", 'width': 4},
-                        'thickness': 0.75,
-                        'value': 90
+        if sentiment_df is None or len(sentiment_df) == 0 or using_synthetic_data:
+            st.markdown('<h2 class="sub-header">Market Sentiment Analysis</h2>', unsafe_allow_html=True)
+            st.info("""
+            📢 **Sentiment Analysis Unavailable**
+            
+            We were unable to fetch real sentiment data from financial news sources. This could be due to:
+            - API rate limits
+            - Network connectivity issues  
+            - Limited news coverage for this time period
+            
+            **The analysis will continue using technical indicators only.** This purely technical approach can still provide valuable insights into price movements and trends.
+            """)
+            
+            # Set flag to exclude sentiment from model training
+            use_sentiment_analysis = False
+            sentiment_df = None
+        else:
+            use_sentiment_analysis = True
+            
+            st.markdown('<h2 class="sub-header">Market Sentiment Analysis</h2>', unsafe_allow_html=True)
+            
+            # Display success message for real data
+            st.success("✅ Successfully obtained real sentiment data from financial news sources!")
+            
+            # Calculate average sentiment with safety checks
+            avg_pos = sentiment_df['sentiment_positive'].mean() * 100 if 'sentiment_positive' in sentiment_df.columns else 50.0
+            avg_neg = sentiment_df['sentiment_negative'].mean() * 100 if 'sentiment_negative' in sentiment_df.columns else 30.0
+            avg_neu = sentiment_df['sentiment_neutral'].mean() * 100 if 'sentiment_neutral' in sentiment_df.columns else 20.0
+            
+            # Ensure values are valid numbers
+            avg_pos = avg_pos if not np.isnan(avg_pos) else 50.0
+            avg_neg = avg_neg if not np.isnan(avg_neg) else 30.0
+            avg_neu = avg_neu if not np.isnan(avg_neu) else 20.0
+            
+            # Display sentiment distribution in a nice gauge chart
+            st.markdown('<div class="card">', unsafe_allow_html=True)
+            col1, col2 = st.columns([2, 3])
+            
+            with col1:
+                # Create a gauge chart for sentiment
+                fig = go.Figure(go.Indicator(
+                    mode = "gauge+number+delta",
+                    value = avg_pos,
+                    domain = {'x': [0, 1], 'y': [0, 1]},
+                    title = {'text': "Positive Sentiment", 'font': {'size': 24}},
+                    delta = {'reference': 50, 'increasing': {'color': "green"}},
+                    gauge = {
+                        'axis': {'range': [None, 100], 'tickwidth': 1, 'tickcolor': "darkblue"},
+                        'bar': {'color': "green"},
+                        'bgcolor': "white",
+                        'borderwidth': 2,
+                        'bordercolor': "gray",
+                        'steps': [
+                            {'range': [0, 30], 'color': 'lightgray'},
+                            {'range': [30, 70], 'color': 'lightgreen'},
+                            {'range': [70, 100], 'color': 'darkgreen'}
+                        ],
+                        'threshold': {
+                            'line': {'color': "red", 'width': 4},
+                            'thickness': 0.75,
+                            'value': 90
+                        }
                     }
-                }
-            ))
-            fig.update_layout(height=200, margin=dict(l=20, r=20, t=50, b=20))
-            st.plotly_chart(fig, use_container_width=True)
-            
-            # Display sentiment metrics
-            data_source_label = "<span style='color:#ff9800; font-weight:bold;'>(Synthetic data)</span>" if using_synthetic_data else "(Real data)"
-            st.markdown(f"""
-            <div style="text-align: center;">
-                <div style="margin-bottom: 8px; font-size: 0.9rem;">{data_source_label}</div>
-                <div style="display: inline-block; margin: 0 10px;">
-                    <div style="font-size: 1.2rem; font-weight: bold; color: green;">
-                        {avg_pos:.1f}%
+                ))
+                fig.update_layout(height=200, margin=dict(l=20, r=20, t=50, b=20))
+                st.plotly_chart(fig, use_container_width=True)
+                
+                # Display sentiment metrics
+                st.markdown(f"""
+                <div style="text-align: center;">
+                    <div style="margin-bottom: 8px; font-size: 0.9rem; color: green; font-weight: bold;">(Real data)</div>
+                    <div style="display: inline-block; margin: 0 10px;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: green;">
+                            {avg_pos:.1f}%
+                        </div>
+                        <div>Positive</div>
                     </div>
-                    <div>Positive</div>
-                </div>
-                <div style="display: inline-block; margin: 0 10px;">
-                    <div style="font-size: 1.2rem; font-weight: bold; color: red;">
-                        {avg_neg:.1f}%
+                    <div style="display: inline-block; margin: 0 10px;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: red;">
+                            {avg_neg:.1f}%
+                        </div>
+                        <div>Negative</div>
                     </div>
-                    <div>Negative</div>
-                </div>
-                <div style="display: inline-block; margin: 0 10px;">
-                    <div style="font-size: 1.2rem; font-weight: bold; color: gray;">
-                        {avg_neu:.1f}%
+                    <div style="display: inline-block; margin: 0 10px;">
+                        <div style="font-size: 1.2rem; font-weight: bold; color: gray;">
+                            {avg_neu:.1f}%
+                        </div>
+                        <div>Neutral</div>
                     </div>
-                    <div>Neutral</div>
                 </div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
+                
+            with col2:
+                # Create sentiment over time chart
+                fig = go.Figure()
+                
+                # Check if required columns exist
+                if 'sentiment_positive' in sentiment_df.columns and 'sentiment_negative' in sentiment_df.columns and 'sentiment_neutral' in sentiment_df.columns:
+                    fig.add_trace(go.Scatter(
+                        x=sentiment_df['date'],
+                        y=sentiment_df['sentiment_positive'],
+                        mode='lines',
+                        name='Positive',
+                        line=dict(color='green', width=2)
+                    ))
+                    fig.add_trace(go.Scatter(
+                        x=sentiment_df['date'],
+                        y=sentiment_df['sentiment_negative'],
+                        mode='lines',
+                        name='Negative',
+                        line=dict(color='red', width=2)
+                    ))
+                    fig.add_trace(go.Scatter(
+                        x=sentiment_df['date'],
+                        y=sentiment_df['sentiment_neutral'],
+                        mode='lines',
+                        name='Neutral',
+                        line=dict(color='gray', width=2)
+                    ))
+                
+                fig.update_layout(
+                    title="Sentiment Trend Over Time",
+                    xaxis_title="Date",
+                    yaxis_title="Sentiment Score",
+                    height=300,
+                    template="plotly_white",
+                    legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+                )
+                st.plotly_chart(fig, use_container_width=True)
             
-        with col2:
-            # Create sentiment over time chart
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(
-                x=sentiment_df['date'],
-                y=sentiment_df['sentiment_positive'],
-                mode='lines',
-                name='Positive',
-                line=dict(color='green', width=2)
-            ))
-            fig.add_trace(go.Scatter(
-                x=sentiment_df['date'],
-                y=sentiment_df['sentiment_negative'],
-                mode='lines',
-                name='Negative',
-                line=dict(color='red', width=2)
-            ))
-            fig.add_trace(go.Scatter(
-                x=sentiment_df['date'],
-                y=sentiment_df['sentiment_neutral'],
-                mode='lines',
-                name='Neutral',
-                line=dict(color='gray', width=2)
-            ))
-            
-            fig.update_layout(
-                title="Sentiment Trend Over Time",
-                xaxis_title="Date",
-                yaxis_title="Sentiment Score",
-                height=300,
-                template="plotly_white",
-                legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
-            )
-            st.plotly_chart(fig, use_container_width=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
         
         progress.progress(35)
         
         # Step 4: Technical analysis (50%)
         status_text.markdown("#### 📊 Performing technical analysis...")
         
-        # Merge data and prepare features
-        combined_df = pd.merge(stock_df, sentiment_df, on='date', how='inner')
+        # Prepare data based on whether sentiment analysis is available
+        if use_sentiment_analysis and sentiment_df is not None:
+            # Merge stock data with sentiment data
+            combined_df = pd.merge(stock_df, sentiment_df, on='date', how='inner')
+            st.info("📊 **Analysis Mode**: Using both technical indicators AND sentiment analysis")
+        else:
+            # Use only stock data
+            combined_df = stock_df.copy()
+            st.info("📊 **Analysis Mode**: Using technical indicators only (no sentiment data)")
         
         # Add technical indicators
         combined_df = TechnicalIndicatorGenerator.add_technical_indicators(combined_df)
@@ -582,8 +595,11 @@ if run_analysis:
         combined_df['price_change_5d'] = combined_df['close'].pct_change(periods=5)
         combined_df['volatility'] = combined_df['close'].rolling(window=5).std() / combined_df['close']
         combined_df['momentum'] = combined_df['close'] - combined_df['close'].shift(5)
-        combined_df['sentiment_pos_ma5'] = combined_df['sentiment_positive'].rolling(window=5).mean()
-        combined_df['sentiment_neg_ma5'] = combined_df['sentiment_negative'].rolling(window=5).mean()
+        
+        # Add sentiment features only if sentiment analysis is available
+        if use_sentiment_analysis and sentiment_df is not None:
+            combined_df['sentiment_pos_ma5'] = combined_df['sentiment_positive'].rolling(window=5).mean()
+            combined_df['sentiment_neg_ma5'] = combined_df['sentiment_negative'].rolling(window=5).mean()
         
         # Drop NaN values
         combined_df = combined_df.dropna()

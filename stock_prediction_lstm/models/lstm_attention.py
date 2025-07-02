@@ -53,7 +53,15 @@ class StockSentimentModel:
         print(f"Sentiment features ({len(sentiment_cols)}): {sentiment_cols}")
         
         market_data = df[market_cols].values
-        sentiment_data = df[sentiment_cols].values
+        
+        # Handle case when no sentiment data is available
+        if len(sentiment_cols) == 0:
+            print("No sentiment features found - using market data only")
+            sentiment_data = np.zeros((len(market_data), 1))  # Create dummy sentiment data
+            self.has_sentiment = False
+        else:
+            sentiment_data = df[sentiment_cols].values
+            self.has_sentiment = True
         
         self.market_scaler.fit(market_data)
         self.sentiment_scaler.fit(sentiment_data)
@@ -104,19 +112,27 @@ class StockSentimentModel:
         market_attention = MultiHeadAttention(num_heads=4, key_dim=16)(market_dropout2, market_dropout2)
         market_residual = Concatenate()([market_dropout2, market_attention])
         
-        sentiment_input = Input(shape=(self.look_back, sentiment_input_dim))
-        sentiment_lstm1 = LSTM(32, return_sequences=True)(sentiment_input)
-        sentiment_dropout1 = Dropout(0.2)(sentiment_lstm1)
-        sentiment_lstm2 = LSTM(16, return_sequences=True)(sentiment_dropout1)
-        sentiment_dropout2 = Dropout(0.2)(sentiment_lstm2)
-        
-        sentiment_attention = MultiHeadAttention(num_heads=2, key_dim=8)(sentiment_dropout2, sentiment_dropout2)
-        sentiment_residual = Concatenate()([sentiment_dropout2, sentiment_attention])
-        
-        combined = Concatenate()([market_residual, sentiment_residual])
-        
-        cross_attention = MultiHeadAttention(num_heads=4, key_dim=16)(combined, combined)
-        combined_residual = Concatenate()([combined, cross_attention])
+        # Only add sentiment branch if sentiment data is available
+        if hasattr(self, 'has_sentiment') and self.has_sentiment:
+            sentiment_input = Input(shape=(self.look_back, sentiment_input_dim))
+            sentiment_lstm1 = LSTM(32, return_sequences=True)(sentiment_input)
+            sentiment_dropout1 = Dropout(0.2)(sentiment_lstm1)
+            sentiment_lstm2 = LSTM(16, return_sequences=True)(sentiment_dropout1)
+            sentiment_dropout2 = Dropout(0.2)(sentiment_lstm2)
+            
+            sentiment_attention = MultiHeadAttention(num_heads=2, key_dim=8)(sentiment_dropout2, sentiment_dropout2)
+            sentiment_residual = Concatenate()([sentiment_dropout2, sentiment_attention])
+            
+            combined = Concatenate()([market_residual, sentiment_residual])
+            
+            cross_attention = MultiHeadAttention(num_heads=4, key_dim=16)(combined, combined)
+            combined_residual = Concatenate()([combined, cross_attention])
+            
+            model_inputs = [market_input, sentiment_input]
+        else:
+            # Market data only
+            combined_residual = market_residual
+            model_inputs = [market_input]
         
         flat = tf.keras.layers.Flatten()(combined_residual)
         dense1 = Dense(64, activation='relu')(flat)
@@ -125,7 +141,7 @@ class StockSentimentModel:
         dropout2 = Dropout(0.2)(dense2)
         output = Dense(self.forecast_horizon, activation='linear')(dropout2)
         
-        model = Model(inputs=[market_input, sentiment_input], outputs=output)
+        model = Model(inputs=model_inputs, outputs=output)
         model.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics=['mae'])
         
         self.model = model
@@ -136,9 +152,15 @@ class StockSentimentModel:
             verbose: int = 1, callbacks=None):
         if self.model is None:
             raise ValueError("Model has not been built yet. Call build_model() first.")
+        
+        # Use appropriate inputs based on whether sentiment data is available
+        if hasattr(self, 'has_sentiment') and self.has_sentiment:
+            model_inputs = [X_market, X_sentiment]
+        else:
+            model_inputs = [X_market]
             
         history = self.model.fit(
-            [X_market, X_sentiment], y, 
+            model_inputs, y, 
             validation_split=validation_split,
             epochs=epochs, 
             batch_size=batch_size,
@@ -150,8 +172,14 @@ class StockSentimentModel:
     def predict(self, X_market: np.ndarray, X_sentiment: np.ndarray) -> np.ndarray:
         if self.model is None:
             raise ValueError("Model has not been built yet. Call build_model() first.")
+        
+        # Use appropriate inputs based on whether sentiment data is available
+        if hasattr(self, 'has_sentiment') and self.has_sentiment:
+            model_inputs = [X_market, X_sentiment]
+        else:
+            model_inputs = [X_market]
             
-        y_pred_scaled = self.model.predict([X_market, X_sentiment])
+        y_pred_scaled = self.model.predict(model_inputs)
         
         y_pred_scaled = np.clip(y_pred_scaled, -1, 1)
         
@@ -189,7 +217,13 @@ class StockSentimentModel:
                 market_batch = market_data.reshape(1, self.look_back, market_data.shape[1])
                 sentiment_batch = sentiment_data.reshape(1, self.look_back, sentiment_data.shape[1])
                 
-                next_day_scaled = self.model.predict([market_batch, sentiment_batch], verbose=0)
+                # Use appropriate inputs based on whether sentiment data is available
+                if hasattr(self, 'has_sentiment') and self.has_sentiment:
+                    model_inputs = [market_batch, sentiment_batch]
+                else:
+                    model_inputs = [market_batch]
+                
+                next_day_scaled = self.model.predict(model_inputs, verbose=0)
                 next_day_scaled = np.clip(next_day_scaled, -1, 1)
                 
                 next_day_transformed = self.price_scaler.inverse_transform(next_day_scaled.reshape(-1, 1))[0][0]

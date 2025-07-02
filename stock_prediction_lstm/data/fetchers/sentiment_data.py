@@ -143,6 +143,12 @@ class SentimentAnalyzer:
     
     def _process_alpha_vantage_data(self, data, start_date, end_date) -> pd.DataFrame:
         """Process Alpha Vantage sentiment data"""
+        # Ensure start_date and end_date are timezone-naive for comparison
+        if hasattr(start_date, 'tz') and start_date.tz is not None:
+            start_date = start_date.tz_localize(None)
+        if hasattr(end_date, 'tz') and end_date.tz is not None:
+            end_date = end_date.tz_localize(None)
+        
         date_range = pd.date_range(start=start_date, end=end_date, freq='D')
         sentiment_df = pd.DataFrame({
             'date': date_range,
@@ -156,6 +162,10 @@ class SentimentAnalyzer:
         for article in data["feed"]:
             try:
                 article_date = pd.to_datetime(article["time_published"])
+                
+                # Ensure article_date is timezone-naive for comparison
+                if hasattr(article_date, 'tz') and article_date.tz is not None:
+                    article_date = article_date.tz_localize(None)
                 
                 if article_date < start_date or article_date > end_date:
                     continue
@@ -273,6 +283,11 @@ class SentimentAnalyzer:
                 sentiment_df['sentiment_neutral'] = neu_weight
             
             print(f"Analyzed {article_count} Yahoo Finance news articles")
+            
+            # If no articles were actually analyzed, return None instead of synthetic data
+            if article_count == 0:
+                return None
+                
             return sentiment_df
             
         except Exception as e:
