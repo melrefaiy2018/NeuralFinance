@@ -35,6 +35,24 @@ class DemoDataGenerator:
         self.ticker = ticker
         self.period = period
         self.prediction_days = prediction_days
+        
+        # Validate API key configuration
+        try:
+            from stock_prediction_lstm.config.settings import Config
+            if not Config.ALPHA_VANTAGE_API_KEY or Config.ALPHA_VANTAGE_API_KEY == "YOUR_API_KEY_HERE":
+                print("\n⚠️  API KEY CONFIGURATION REQUIRED")
+                print("=" * 60)
+                print("Alpha Vantage API key is not properly configured.")
+                print("The model will use synthetic sentiment data instead.")
+                print("")
+                print("To use real sentiment data:")
+                print("1. Get a free API key at: https://www.alphavantage.co/support/#api-key")
+                print("2. Navigate to: stock_prediction_lstm/config/keys/")
+                print("3. Edit api_keys.py and replace 'YOUR_API_KEY_HERE' with your key")
+                print("=" * 60)
+        except Exception as e:
+            print(f"⚠️  Configuration warning: {e}")
+        
         self.analyzer = StockAnalyzer()
         self.demo_data = {}
         

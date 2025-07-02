@@ -16,11 +16,17 @@ class SentimentAnalyzer:
         self.ticker_symbol = ticker_symbol
         # Use relative import to avoid circular import issues
         try:
-            from config.settings import Config
-            self.alpha_vantage_key = Config.ALPHA_VANTAGE_API_KEY
+            from ...config.settings import Config
+            if not Config.load_api_keys():
+                print("\n⚠️  API key not configured properly")
+                self.alpha_vantage_key = None
+            else:
+                self.alpha_vantage_key = Config.ALPHA_VANTAGE_API_KEY
         except ImportError:
             # Fallback if config is not available
             self.alpha_vantage_key = None
+            print("⚠️  Configuration module not available")
+        
         self.using_synthetic_data = False
         self.data_source = "unknown"
         
@@ -39,7 +45,7 @@ class SentimentAnalyzer:
             ("Alpha Vantage API", self._fetch_alpha_vantage_sentiment),
             ("Yahoo Finance News", self._fetch_yahoo_news_sentiment),
             ("Price-based Synthetic", self._generate_price_based_sentiment),
-            ("Random Synthetic", self._generate_random_sentiment)
+            # ("Random Synthetic", self._generate_random_sentiment)
         ]
         
         for method_name, method_func in methods:
@@ -67,6 +73,12 @@ class SentimentAnalyzer:
         """
         Fetch sentiment from Alpha Vantage API with enhanced error handling
         """
+        if not self.alpha_vantage_key or self.alpha_vantage_key == "YOUR_API_KEY_HERE":
+            print("\n❌ Alpha Vantage API key not configured")
+            print("Please configure your API key in config/keys/api_keys.py")
+            print("Get a free key at: https://www.alphavantage.co/support/#api-key")
+            raise Exception("API key not configured")
+            
         base_url = "https://www.alphavantage.co/query"
         
         params = {
@@ -113,6 +125,10 @@ class SentimentAnalyzer:
     
     def _test_api_key(self) -> bool:
         """Test if the API key is valid"""
+        if not self.alpha_vantage_key or self.alpha_vantage_key == "YOUR_API_KEY_HERE":
+            print("❌ API key not configured")
+            return False
+            
         try:
             test_url = "https://www.alphavantage.co/query"
             test_params = {
@@ -126,15 +142,20 @@ class SentimentAnalyzer:
             if response.status_code == 200:
                 data = response.json()
                 if "Error Message" in data:
-                    print(f"API key error: {data['Error Message']}")
+                    print(f"❌ API key error: {data['Error Message']}")
+                    print("Please check your API key in config/keys/api_keys.py")
                     return False
                 elif "Note" in data:
-                    print(f"API rate limited: {data['Note']}")
+                    print(f"⚠️  API rate limited: {data['Note']}")
                     return False
                 elif "Time Series (Daily)" in data:
-                    print("API key is valid")
+                    print("✅ API key is valid")
                     return True
+                else:
+                    print(f"❌ Unexpected API response: {list(data.keys())}")
+                    return False
                     
+            print(f"❌ API request failed with status {response.status_code}")
             return False
             
         except Exception as e:
