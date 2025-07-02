@@ -38,7 +38,32 @@ class StockAnalyzer:
                 return None, None, None, None
             
             print("Preparing data...")
+            
+            # Normalize datetime columns to avoid merge conflicts
+            # Convert both to timezone-naive dates for consistent merging
+            
+            # For stock data - convert to timezone-naive date
+            stock_df = stock_df.copy()
+            if hasattr(stock_df['date'].dtype, 'tz') and stock_df['date'].dtype.tz is not None:
+                # Convert timezone-aware to timezone-naive
+                stock_df['date'] = stock_df['date'].dt.tz_convert('UTC').dt.tz_localize(None)
+            
+            # Normalize to date only (remove time component)
+            stock_df['date'] = pd.to_datetime(stock_df['date'].dt.date)
+            
+            # For sentiment data - ensure timezone-naive
+            sentiment_df = sentiment_df.copy()
+            if hasattr(sentiment_df['date'].dtype, 'tz') and sentiment_df['date'].dtype.tz is not None:
+                sentiment_df['date'] = sentiment_df['date'].dt.tz_convert('UTC').dt.tz_localize(None)
+            
+            # Normalize to date only (remove time component)
+            sentiment_df['date'] = pd.to_datetime(sentiment_df['date'].dt.date)
+            
+            print(f"Stock data dates: {stock_df['date'].min()} to {stock_df['date'].max()} ({len(stock_df)} rows)")
+            print(f"Sentiment data dates: {sentiment_df['date'].min()} to {sentiment_df['date'].max()} ({len(sentiment_df)} rows)")
+            
             combined_df = pd.merge(stock_df, sentiment_df, on='date', how='inner')
+            print(f"Combined data: {len(combined_df)} rows after merge")
             
             combined_df['price_change'] = combined_df['close'].pct_change()
             combined_df['volatility'] = combined_df['close'].rolling(window=5).std() / combined_df['close']

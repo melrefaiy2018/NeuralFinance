@@ -365,8 +365,8 @@ const chartData = {{
 def main():
     """Main execution function"""
     parser = argparse.ArgumentParser(description='Generate real demo data for Stock Prediction LSTM')
-    parser.add_argument('--ticker', default='AAPL', help='Stock ticker symbol (default: AAPL)')
-    parser.add_argument('--period', default='2y', help='Data period (default: 2y)')
+    parser.add_argument('--ticker', default='NVDA', help='Stock ticker symbol (default: NVDA)')
+    parser.add_argument('--period', default='4y', help='Data period (default: 4y)')
     parser.add_argument('--days', type=int, default=5, help='Prediction days (default: 5)')
     parser.add_argument('--output', help='Output file path (default: auto-generated)')
     
