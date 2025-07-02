@@ -93,13 +93,21 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# Import your modules (make sure these are in the same directory)
+# Add the parent directory to Python path for imports
+import sys
+import os
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+if parent_dir not in sys.path:
+    sys.path.insert(0, parent_dir)
+
+# Import your modules
 try:
-    from stock_prediction_lstm.data.fetchers import StockDataFetcher, SentimentAnalyzer
-    from stock_prediction_lstm.data.processors import TechnicalIndicatorGenerator
-    from stock_prediction_lstm.models import StockSentimentModel
-    from stock_prediction_lstm.analysis import StockAnalyzer
-    from stock_prediction_lstm.visualization import (
+    from data.fetchers import StockDataFetcher, SentimentAnalyzer
+    from data.processors import TechnicalIndicatorGenerator
+    from models import StockSentimentModel
+    from analysis import StockAnalyzer
+    from visualization import (
         visualize_stock_data,
         visualize_prediction_comparison,
         visualize_future_predictions,
@@ -108,7 +116,7 @@ try:
     )
 except ImportError as e:
     st.error(f"Error importing required modules: {e}")
-    st.info("Make sure all required module files are in the same directory as app.py")
+    st.info("Make sure all required module files are in the correct package structure")
     st.stop()
 
 def get_market_state():

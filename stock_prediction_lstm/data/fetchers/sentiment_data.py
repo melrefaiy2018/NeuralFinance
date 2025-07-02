@@ -14,16 +14,13 @@ class SentimentAnalyzer:
     
     def __init__(self, ticker_symbol: str = 'NVDA'):
         self.ticker_symbol = ticker_symbol
-        from stock_prediction_lstm.config.settings import Config
-
-class SentimentAnalyzer:
-    """
-    Enhanced sentiment analyzer with multiple data sources and better error handling
-    """
-    
-    def __init__(self, ticker_symbol: str = 'NVDA'):
-        self.ticker_symbol = ticker_symbol
-        self.alpha_vantage_key = Config.ALPHA_VANTAGE_API_KEY
+        # Use relative import to avoid circular import issues
+        try:
+            from config.settings import Config
+            self.alpha_vantage_key = Config.ALPHA_VANTAGE_API_KEY
+        except ImportError:
+            # Fallback if config is not available
+            self.alpha_vantage_key = None
         self.using_synthetic_data = False
         self.data_source = "unknown"
         

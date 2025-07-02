@@ -33,9 +33,10 @@ class StockDataFetcher:
         
         self.storage_manager = None
         try:
-            from stock_prediction_lstm.data.storage.cache_manager import stock_data_manager
+            from data.storage.cache_manager import stock_data_manager
             self.storage_manager = stock_data_manager
-        except:
+        except ImportError:
+            # Fallback if storage is not available
             pass
     
     def fetch_data(self) -> Optional[pd.DataFrame]:
