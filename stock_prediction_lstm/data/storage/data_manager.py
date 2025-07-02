@@ -7,8 +7,13 @@ import sqlite3
 from typing import Optional, Dict, Tuple
 import logging
 
-from stock_prediction_lstm.data.fetchers import StockDataFetcher, SentimentAnalyzer
-from stock_prediction_lstm.data.processors import TechnicalIndicatorGenerator
+try:
+    from ..fetchers import StockDataFetcher, SentimentAnalyzer
+    from ..processors import TechnicalIndicatorGenerator
+except ImportError:
+    # Fallback for direct script execution
+    from data.fetchers import StockDataFetcher, SentimentAnalyzer
+    from data.processors import TechnicalIndicatorGenerator
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

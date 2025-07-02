@@ -1,10 +1,17 @@
 import pandas as pd
 import datetime as dt
 from typing import Optional, Tuple, List
-from stock_prediction_lstm.data.fetchers import StockDataFetcher, SentimentAnalyzer
-from stock_prediction_lstm.data.processors import TechnicalIndicatorGenerator
-from stock_prediction_lstm.models import StockSentimentModel
 import tensorflow as tf
+
+try:
+    from ..data.fetchers import StockDataFetcher, SentimentAnalyzer
+    from ..data.processors import TechnicalIndicatorGenerator
+    from ..models import StockSentimentModel
+except ImportError:
+    # Fallback for direct script execution
+    from data.fetchers import StockDataFetcher, SentimentAnalyzer
+    from data.processors import TechnicalIndicatorGenerator
+    from models import StockSentimentModel
 
 class StockAnalyzer:
     def run_analysis_for_stock(self, ticker: str, period: str = '1y', interval: str = '1d') -> Tuple[Optional[StockSentimentModel], Optional[pd.DataFrame], Optional[List[float]], Optional[List]]:

@@ -129,7 +129,10 @@ class EnhancedStockDataManager:
         
         logger.info(f"Fetching fresh market data for {ticker} (period={period}, interval={interval})")
         try:
-            from stock_prediction_lstm.data.fetchers import StockDataFetcher
+            try:
+                from ..fetchers import StockDataFetcher
+            except ImportError:
+                from data.fetchers import StockDataFetcher
             fetcher = StockDataFetcher(ticker, period, interval)
             data = fetcher.fetch_data()
             
@@ -189,7 +192,10 @@ class EnhancedStockDataManager:
         
         logger.info(f"Fetching fresh sentiment data for {ticker} ({start_date} to {end_date})")
         try:
-            from stock_prediction_lstm.data.fetchers import SentimentAnalyzer
+            try:
+                from ..fetchers import SentimentAnalyzer
+            except ImportError:
+                from data.fetchers import SentimentAnalyzer
             
             analyzer = SentimentAnalyzer(ticker)
             data = analyzer.fetch_news_sentiment(start_date, end_date)

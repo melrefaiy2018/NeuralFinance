@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import LSTM, MultiHeadAttention, Dense, Dropout, Input, Concatenate
@@ -77,7 +78,7 @@ class StockSentimentModel:
             df = df.drop(columns=cols_to_drop)
             
         numeric_cols = df.select_dtypes(include=['number']).columns
-        df[numeric_cols] = df[numeric_cols].fillna(method='ffill').fillna(method='bfill')
+        df[numeric_cols] = df[numeric_cols].ffill().bfill()
         df = df.fillna(df.median())
         
         return df
