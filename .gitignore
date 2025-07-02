@@ -1,0 +1,3 @@
+stock_prediction_lstm/__pycache__
+*.pyc
+.DS_Store
