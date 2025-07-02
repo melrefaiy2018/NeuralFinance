@@ -455,6 +455,11 @@ if run_analysis:
             # Set flag to exclude sentiment from model training
             use_sentiment_analysis = False
             sentiment_df = None
+            
+            # Set default sentiment values when no data is available
+            avg_pos = 50.0  # Neutral default
+            avg_neg = 30.0  # Neutral default
+            avg_neu = 20.0  # Neutral default
         else:
             use_sentiment_analysis = True
             
@@ -966,27 +971,107 @@ if run_analysis:
         else:
             y_true = model.price_scaler.inverse_transform(y_test)
             
-        # For debugging purposes, check the min/max values
-        min_true, max_true = np.min(y_true), np.max(y_true)
-        min_pred, max_pred = np.min(y_pred), np.max(y_pred)
-        
-        # Check if there's a significant scale difference and apply stronger correction
-        if max_true * 0.1 > max_pred or max_pred > max_true * 10:
-            # Apply a scaling factor if needed
-            scale_factor = np.mean(y_true) / np.mean(y_pred) if np.mean(y_pred) != 0 else 1
-            y_pred = y_pred * scale_factor
-            st.warning(f"Detected scale mismatch between actual and predicted values. Applied scaling correction.")
+        # Robust scaling correction with validation
+        def robust_scaling_correction(y_true, y_pred, current_price, ticker_symbol):
+            """
+            Apply robust scaling correction with multiple validation steps
+            """
+            original_y_true = y_true.copy()
+            original_y_pred = y_pred.copy()
+            scaling_applied = False
             
-        # Check against the ticker's actual price range for validation
-        current_price = stock_df['close'].iloc[-1]
-        avg_displayed_price = (np.mean(y_true) + np.mean(y_pred)) / 2
+            # Calculate statistics for both arrays
+            true_stats = {
+                'mean': np.mean(y_true),
+                'median': np.median(y_true),
+                'std': np.std(y_true),
+                'min': np.min(y_true),
+                'max': np.max(y_true)
+            }
+            
+            pred_stats = {
+                'mean': np.mean(y_pred),
+                'median': np.median(y_pred),
+                'std': np.std(y_pred),
+                'min': np.min(y_pred),
+                'max': np.max(y_pred)
+            }
+            
+            # Step 1: Check for extreme scale differences (more conservative thresholds)
+            scale_ratio = true_stats['median'] / pred_stats['median'] if pred_stats['median'] != 0 else 1
+            
+            if scale_ratio < 0.3 or scale_ratio > 3.0:  # More conservative than 0.1 and 10
+                # Use median-based scaling for robustness against outliers
+                if pred_stats['median'] != 0:
+                    scale_factor = true_stats['median'] / pred_stats['median']
+                    
+                    # Limit extreme scaling factors
+                    scale_factor = np.clip(scale_factor, 0.1, 10.0)
+                    
+                    y_pred = y_pred * scale_factor
+                    scaling_applied = True
+                    
+                    st.info(f"📊 **Scale Adjustment Applied**  \n"
+                           f"Detected {scale_ratio:.2f}x difference between actual and predicted values.  \n"
+                           f"Applied {scale_factor:.2f}x correction factor using median-based scaling.")
+            
+            # Step 2: Validate against current market price
+            current_avg = (np.median(y_true) + np.median(y_pred)) / 2
+            price_ratio = current_avg / current_price if current_price != 0 else 1
+            
+            # More conservative price validation (within 50% - 200% of current price)
+            if price_ratio < 0.5 or price_ratio > 2.0:
+                # Calculate a more gentle adjustment
+                target_price_range = current_price
+                current_range_center = (np.median(y_true) + np.median(y_pred)) / 2
+                
+                if current_range_center != 0:
+                    price_adjustment = target_price_range / current_range_center
+                    
+                    # Apply gentler adjustment - limit to 2x changes
+                    price_adjustment = np.clip(price_adjustment, 0.5, 2.0)
+                    
+                    y_true = y_true * price_adjustment
+                    y_pred = y_pred * price_adjustment
+                    scaling_applied = True
+                    
+                    st.info(f"💰 **Price Range Adjustment**  \n"
+                           f"Aligned predictions with current {ticker_symbol} price range.  \n"
+                           f"Current price: ${current_price:.2f}, Adjustment factor: {price_adjustment:.2f}x")
+            
+            # Step 3: Final validation - check for reasonable values
+            final_true_range = np.max(y_true) - np.min(y_true)
+            final_pred_range = np.max(y_pred) - np.min(y_pred)
+            
+            # If values are still unreasonable, provide a warning
+            if np.any(y_true < 0) or np.any(y_pred < 0):
+                st.warning("⚠️ **Negative Price Values Detected** - Model may need retraining with better data preprocessing.")
+            
+            if final_true_range > current_price * 10 or final_pred_range > current_price * 10:
+                st.warning("⚠️ **Large Price Volatility Detected** - Predictions show unusual price swings. Consider checking model stability.")
+            
+            # Log detailed information in an expander for debugging
+            if scaling_applied:
+                with st.expander("🔍 Scaling Details (Click to expand)"):
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.write("**Original Statistics:**")
+                        st.write(f"True values: ${true_stats['median']:.2f} median, ${true_stats['std']:.2f} std")
+                        st.write(f"Predicted: ${pred_stats['median']:.2f} median, ${pred_stats['std']:.2f} std")
+                        st.write(f"Scale ratio: {scale_ratio:.3f}")
+                    
+                    with col2:
+                        st.write("**After Scaling:**")
+                        st.write(f"True values: ${np.median(y_true):.2f} median")
+                        st.write(f"Predicted: ${np.median(y_pred):.2f} median")
+                        st.write(f"Current {ticker_symbol}: ${current_price:.2f}")
+            
+            return y_true, y_pred
         
-        # If the displayed price is too far from the actual price, apply an additional scaling
-        if avg_displayed_price < current_price * 0.1 or avg_displayed_price > current_price * 10:
-            additional_scale = current_price / avg_displayed_price
-            y_true = y_true * additional_scale
-            y_pred = y_pred * additional_scale
-            st.warning(f"Applied additional price scaling to match current market price range.")
+        # Apply robust scaling correction
+        current_price = stock_df['close'].iloc[-1]
+        y_true, y_pred = robust_scaling_correction(y_true, y_pred, current_price, ticker_symbol)
             
         # Create test prediction visualization
         fig = go.Figure()
@@ -1027,7 +1112,44 @@ if run_analysis:
             showlegend=True
         ))
         
+        # Calculate robust y-axis range
+        def calculate_robust_y_range(y_true, y_pred, current_price):
+            """Calculate a robust y-axis range that handles edge cases"""
+            all_values = np.concatenate([y_true.flatten(), y_pred.flatten()])
+            
+            # Remove outliers using IQR method
+            q1, q3 = np.percentile(all_values, [25, 75])
+            iqr = q3 - q1
+            lower_bound = q1 - 1.5 * iqr
+            upper_bound = q3 + 1.5 * iqr
+            
+            # Filter out extreme outliers
+            filtered_values = all_values[(all_values >= lower_bound) & (all_values <= upper_bound)]
+            
+            if len(filtered_values) > 0:
+                y_min = np.min(filtered_values)
+                y_max = np.max(filtered_values)
+            else:
+                # Fallback to original values if filtering removes everything
+                y_min = np.min(all_values)
+                y_max = np.max(all_values)
+            
+            # Ensure reasonable range
+            if y_max - y_min < current_price * 0.01:  # If range is too small
+                center = (y_max + y_min) / 2
+                y_min = center - current_price * 0.05
+                y_max = center + current_price * 0.05
+            
+            # Add padding
+            padding = (y_max - y_min) * 0.1
+            y_min = max(0, y_min - padding)  # Don't go below 0 for stock prices
+            y_max = y_max + padding
+            
+            return [y_min, y_max]
+        
         # Make sure both lines are on the same axis without auto-scaling
+        y_range = calculate_robust_y_range(y_true, y_pred, current_price)
+        
         fig.update_layout(
             title=f"{ticker_symbol} Price Prediction - Test Data",
             xaxis_title="Time (Days)",
@@ -1035,10 +1157,7 @@ if run_analysis:
             height=500,
             template="plotly_white",
             legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-            yaxis=dict(
-                range=[min(np.min(y_true), np.min(y_pred)) * 0.9, 
-                       max(np.max(y_true), np.max(y_pred)) * 1.1]
-            )
+            yaxis=dict(range=y_range)
         )
         
         st.plotly_chart(fig, use_container_width=True)
@@ -1100,6 +1219,41 @@ if run_analysis:
             time.sleep(0.1)
         
         prediction_status.empty()
+        
+        # Validate future predictions
+        def validate_future_predictions(future_prices, current_price, ticker_symbol):
+            """Validate future predictions for reasonableness"""
+            if not future_prices:
+                return future_prices
+                
+            future_array = np.array(future_prices)
+            
+            # Check for negative prices
+            if np.any(future_array <= 0):
+                st.warning(f"⚠️ **Invalid Predictions Detected** - Some future prices are negative or zero. Model may need retraining.")
+                # Clip to minimum of 1% of current price
+                future_array = np.clip(future_array, current_price * 0.01, None)
+            
+            # Check for extreme volatility (more than 50% change per day)
+            if len(future_array) > 1:
+                daily_changes = np.abs(np.diff(future_array) / future_array[:-1])
+                max_daily_change = np.max(daily_changes)
+                
+                if max_daily_change > 0.5:  # 50% daily change
+                    st.warning(f"⚠️ **High Volatility Predicted** - Model predicts up to {max_daily_change*100:.1f}% daily price changes.")
+            
+            # Check if predictions are too far from current price
+            avg_prediction = np.mean(future_array)
+            price_deviation = abs(avg_prediction - current_price) / current_price
+            
+            if price_deviation > 2.0:  # More than 200% deviation
+                st.info(f"📊 **Large Price Movement Predicted** - Average predicted price (${avg_prediction:.2f}) differs significantly from current price (${current_price:.2f}).")
+            
+            return future_array.tolist()
+        
+        # Validate the predictions
+        current_price = combined_df['close'].iloc[-1]
+        future_prices = validate_future_predictions(future_prices, current_price, ticker_symbol)
         
         # Generate future dates
         last_date = combined_df['date'].iloc[-1]
