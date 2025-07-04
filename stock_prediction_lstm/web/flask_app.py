@@ -407,56 +407,82 @@ def create_future_predictions_chart(hist_dates, hist_prices, future_dates, futur
         return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
 
 def create_correlation_matrix_chart(combined_df, ticker_symbol, output_path=None):
-    """Create a correlation matrix heatmap for various features"""
-    # Select relevant columns for correlation analysis
-    correlation_columns = ['close', 'volume', 'sentiment_positive', 'sentiment_negative']
+    """Create an optimized correlation matrix heatmap for various features"""
     
-    # Add technical indicators if they exist
-    tech_indicators = ['rsi14', 'macd', 'macd_signal', 'bb_upper', 'bb_lower', 'bb_middle',
-                      'ma7', 'ma30', 'price_change', 'volatility', 'momentum', 'volume_change',
-                      'high_low_ratio', 'open_close_ratio', 'price_volume_trend',
-                      'sentiment_pos_ma5', 'sentiment_neg_ma5']
+    # Define core features we always want to include
+    core_features = ['close', 'volume']
     
-    for col in tech_indicators:
-        if col in combined_df.columns:
-            correlation_columns.append(col)
+    # Define optional features to include if they exist and have valid data
+    optional_features = [
+        'sentiment_positive', 'sentiment_negative', 'rsi14', 'macd', 'macd_signal',
+        'ma7', 'ma30', 'price_change', 'volatility', 'momentum'
+    ]
     
-    # Create a mapping for better column names
+    # Create a mapping for better column names (shorter for better display)
     column_names_mapping = {
         'close': 'Close Price',
         'volume': 'Volume',
-        'sentiment_positive': 'Positive Sentiment',
-        'sentiment_negative': 'Negative Sentiment',
-        'rsi14': 'RSI (14)',
+        'sentiment_positive': 'Pos Sentiment',
+        'sentiment_negative': 'Neg Sentiment',
+        'rsi14': 'RSI',
         'macd': 'MACD',
         'macd_signal': 'MACD Signal',
-        'bb_upper': 'Bollinger Upper',
-        'bb_lower': 'Bollinger Lower',
-        'bb_middle': 'Bollinger Middle',
-        'ma7': '7-day MA',
-        'ma30': '30-day MA',
-        'price_change': 'Price Change',
+        'ma7': '7d MA',
+        'ma30': '30d MA', 
+        'price_change': 'Price Δ',
         'volatility': 'Volatility',
-        'momentum': 'Momentum',
-        'volume_change': 'Volume Change',
-        'high_low_ratio': 'High/Low Ratio',
-        'open_close_ratio': 'Open/Close Ratio',
-        'price_volume_trend': 'Price×Volume',
-        'sentiment_pos_ma5': 'Avg Pos Sentiment',
-        'sentiment_neg_ma5': 'Avg Neg Sentiment'
+        'momentum': 'Momentum'
     }
     
-    # Filter only available columns
-    available_columns = [col for col in correlation_columns if col in combined_df.columns]
+    # Filter and validate columns
+    valid_columns = []
     
-    if len(available_columns) < 2:
-        # Return empty chart if not enough data
+    # Check each feature for data quality
+    for col in core_features + optional_features:
+        if col in combined_df.columns:
+            # Check for sufficient non-null data
+            non_null_ratio = combined_df[col].notna().sum() / len(combined_df)
+            if non_null_ratio > 0.8:  # At least 80% valid data
+                # Check for sufficient variance (not all identical values)
+                if combined_df[col].std() > 1e-10:
+                    valid_columns.append(col)
+    
+    # Ensure we have enough features for meaningful correlation
+    if len(valid_columns) < 3:
         fig = go.Figure()
         fig.add_annotation(
-            text="Not enough data for correlation analysis",
+            text=f"Insufficient valid data for correlation analysis<br>Only {len(valid_columns)} features have enough quality data",
             xref="paper", yref="paper",
             x=0.5, y=0.5, xanchor='center', yanchor='middle',
-            showarrow=False, font=dict(size=16, color="gray")
+            showarrow=False, font=dict(size=12, color="gray")
+        )
+        fig.update_layout(
+            title=f"{ticker_symbol} Feature Correlation Matrix",
+            height=400,
+            template="plotly_white",
+            showlegend=False
+        )
+        return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
+    
+    # Limit to top 10 features to avoid overcrowding
+    if len(valid_columns) > 10:
+        # Prioritize features that correlate well with price
+        price_correlations = combined_df[valid_columns].corrwith(combined_df['close']).abs()
+        top_features = price_correlations.nlargest(9).index.tolist()
+        if 'close' not in top_features:
+            top_features = ['close'] + top_features[:9]
+        valid_columns = top_features
+    
+    # Calculate correlation matrix with cleaned data
+    clean_df = combined_df[valid_columns].dropna()
+    
+    if len(clean_df) < 10:  # Need minimum data points
+        fig = go.Figure()
+        fig.add_annotation(
+            text=f"Insufficient data points for reliable correlation<br>Only {len(clean_df)} complete observations available",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, xanchor='center', yanchor='middle',
+            showarrow=False, font=dict(size=12, color="gray")
         )
         fig.update_layout(
             title=f"{ticker_symbol} Feature Correlation Matrix",
@@ -466,23 +492,51 @@ def create_correlation_matrix_chart(combined_df, ticker_symbol, output_path=None
         return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
     
     # Calculate correlation matrix
-    corr_df = combined_df[available_columns].corr()
+    corr_df = clean_df.corr()
     
-    # Rename columns and index for better display
-    display_names = [column_names_mapping.get(col, col) for col in available_columns]
+    # Replace any remaining NaN values with 0
+    corr_df = corr_df.fillna(0)
+    
+    # Rename columns and index for display
+    display_names = [column_names_mapping.get(col, col) for col in valid_columns]
     corr_df.columns = display_names
     corr_df.index = display_names
     
-    # Create custom colorscale for better visualization
+    # Create optimized colorscale
     colorscale = [
-        [0.0, '#d73027'],    # Strong negative correlation - red
-        [0.25, '#f46d43'],   # Moderate negative - orange-red
+        [0.0, '#313695'],    # Strong negative - dark blue
+        [0.2, '#74add1'],    # Moderate negative - light blue  
+        [0.4, '#abd9e9'],    # Weak negative - very light blue
         [0.5, '#ffffff'],    # No correlation - white
-        [0.75, '#74add1'],   # Moderate positive - light blue
-        [1.0, '#313695']     # Strong positive correlation - dark blue
+        [0.6, '#fee090'],    # Weak positive - very light orange
+        [0.8, '#f46d43'],    # Moderate positive - orange
+        [1.0, '#d73027']     # Strong positive - red
     ]
     
-    # Create heatmap
+    # Calculate optimal size based on number of features - make it bigger for better readability
+    n_features = len(display_names)
+    # Increase base size significantly and ensure minimum size for readability
+    base_size = max(900, min(1600, n_features * 120))  # Increased to 120 pixels per feature for better text spacing
+    
+    # Calculate text size more generously - much larger for better readability
+    text_size = max(12, min(18, 400//n_features))  # Increased minimum size and scaling factor significantly
+    
+    # Create text for display - only show significant correlations clearly
+    correlation_text = np.around(corr_df.values, decimals=2)
+    text_display = []
+    for i in range(len(correlation_text)):
+        row = []
+        for j in range(len(correlation_text[i])):
+            val = correlation_text[i][j]
+            if i == j:  # diagonal
+                row.append("1.00")
+            elif abs(val) < 0.05:  # very weak correlation
+                row.append("")
+            else:
+                row.append(f"{val:.2f}")
+        text_display.append(row)
+    
+    # Create heatmap with optimized settings
     fig = go.Figure(data=go.Heatmap(
         z=corr_df.values,
         x=corr_df.columns,
@@ -491,41 +545,70 @@ def create_correlation_matrix_chart(combined_df, ticker_symbol, output_path=None
         zmid=0,
         zmin=-1,
         zmax=1,
-        text=np.around(corr_df.values, decimals=2),
+        text=text_display,
         texttemplate="%{text}",
-        textfont={"size": 10, "color": "black"},
+        textfont={"size": text_size, "color": "black", "family": "Arial"},
         hoverongaps=False,
-        hovertemplate='<b>%{y}</b> vs <b>%{x}</b><br>Correlation: %{z}<extra></extra>'
+        hovertemplate='<b>%{y}</b> vs <b>%{x}</b><br>Correlation: %{z:.3f}<br><extra></extra>',
+        showscale=True
     ))
     
-    # Add colorbar title
+    # Optimize layout with better spacing
     fig.update_layout(
-        title=f"{ticker_symbol} Feature Correlation Matrix",
-        xaxis_title="Features",
-        yaxis_title="Features",
-        height=600,
-        width=800,
+        title={
+            'text': f"{ticker_symbol} Feature Correlation Matrix",
+            'x': 0.5,
+            'xanchor': 'center',
+            'font': {'size': 20}  # Larger title for bigger chart
+        },
+        height=base_size,
+        width=base_size + 200,  # Even more extra width for labels and colorbar
         template="plotly_white",
-        font=dict(size=12)
+        font=dict(size=14),  # Increased base font size
+        margin=dict(l=200, r=200, t=120, b=200),  # Increased margins significantly for better spacing
+        autosize=False  # Disable autosize to maintain our custom sizing
     )
     
-    # Update colorbar
+    # Update colorbar with better positioning
     fig.update_traces(
         colorbar=dict(
-            title="Correlation<br>Coefficient",
+            title="Correlation",
             tickvals=[-1, -0.5, 0, 0.5, 1],
-            ticktext=['-1.0', '-0.5', '0.0', '0.5', '1.0']
+            ticktext=['-1.0', '-0.5', '0.0', '0.5', '1.0'],
+            len=0.8,
+            thickness=20,  # Make colorbar thicker
+            x=1.02,  # Position colorbar further right
+            xanchor="left"
         )
     )
     
-    # Rotate x-axis labels for better readability
-    fig.update_xaxes(tickangle=45)
-    fig.update_yaxes(tickangle=0)
+    # Optimize axis settings with better font sizes and spacing
+    axis_font_size = max(12, min(16, 250//n_features))  # Even larger axis font sizing for better readability
     
-    # Make the layout square for better visual appeal
-    fig.update_layout(
-        xaxis=dict(scaleanchor="y", scaleratio=1),
-        margin=dict(l=100, r=100, t=80, b=100)
+    fig.update_xaxes(
+        tickangle=45,
+        tickfont={'size': axis_font_size, 'family': 'Arial'},
+        side='bottom',
+        tickmode='array',
+        tickvals=list(range(len(display_names))),
+        ticktext=display_names
+    )
+    fig.update_yaxes(
+        tickangle=0,
+        tickfont={'size': axis_font_size, 'family': 'Arial'},
+        autorange='reversed',  # Show same order as x-axis
+        tickmode='array',
+        tickvals=list(range(len(display_names))),
+        ticktext=display_names
+    )
+    
+    # Add subtitle with data info - positioned better
+    fig.add_annotation(
+        text=f"Based on {len(clean_df)} data points | {len(valid_columns)} features analyzed",
+        xref="paper", yref="paper",
+        x=0.5, y=-0.15, xanchor='center', yanchor='top',  # Moved further down
+        showarrow=False, 
+        font=dict(size=11, color="gray", family="Arial")
     )
     
     if output_path:
@@ -1177,4 +1260,4 @@ def compare():
                           synthetic_data_flags=synthetic_data_flags)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8980)
+    app.run(debug=True, host='0.0.0.0', port=8920)
