@@ -406,6 +406,134 @@ def create_future_predictions_chart(hist_dates, hist_prices, future_dates, futur
     else:
         return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
 
+def create_correlation_matrix_chart(combined_df, ticker_symbol, output_path=None):
+    """Create a correlation matrix heatmap for various features"""
+    # Select relevant columns for correlation analysis
+    correlation_columns = ['close', 'volume', 'sentiment_positive', 'sentiment_negative']
+    
+    # Add technical indicators if they exist
+    tech_indicators = ['rsi14', 'macd', 'macd_signal', 'bb_upper', 'bb_lower', 'bb_middle',
+                      'ma7', 'ma30', 'price_change', 'volatility', 'momentum', 'volume_change',
+                      'high_low_ratio', 'open_close_ratio', 'price_volume_trend',
+                      'sentiment_pos_ma5', 'sentiment_neg_ma5']
+    
+    for col in tech_indicators:
+        if col in combined_df.columns:
+            correlation_columns.append(col)
+    
+    # Create a mapping for better column names
+    column_names_mapping = {
+        'close': 'Close Price',
+        'volume': 'Volume',
+        'sentiment_positive': 'Positive Sentiment',
+        'sentiment_negative': 'Negative Sentiment',
+        'rsi14': 'RSI (14)',
+        'macd': 'MACD',
+        'macd_signal': 'MACD Signal',
+        'bb_upper': 'Bollinger Upper',
+        'bb_lower': 'Bollinger Lower',
+        'bb_middle': 'Bollinger Middle',
+        'ma7': '7-day MA',
+        'ma30': '30-day MA',
+        'price_change': 'Price Change',
+        'volatility': 'Volatility',
+        'momentum': 'Momentum',
+        'volume_change': 'Volume Change',
+        'high_low_ratio': 'High/Low Ratio',
+        'open_close_ratio': 'Open/Close Ratio',
+        'price_volume_trend': 'Price×Volume',
+        'sentiment_pos_ma5': 'Avg Pos Sentiment',
+        'sentiment_neg_ma5': 'Avg Neg Sentiment'
+    }
+    
+    # Filter only available columns
+    available_columns = [col for col in correlation_columns if col in combined_df.columns]
+    
+    if len(available_columns) < 2:
+        # Return empty chart if not enough data
+        fig = go.Figure()
+        fig.add_annotation(
+            text="Not enough data for correlation analysis",
+            xref="paper", yref="paper",
+            x=0.5, y=0.5, xanchor='center', yanchor='middle',
+            showarrow=False, font=dict(size=16, color="gray")
+        )
+        fig.update_layout(
+            title=f"{ticker_symbol} Feature Correlation Matrix",
+            height=400,
+            template="plotly_white"
+        )
+        return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
+    
+    # Calculate correlation matrix
+    corr_df = combined_df[available_columns].corr()
+    
+    # Rename columns and index for better display
+    display_names = [column_names_mapping.get(col, col) for col in available_columns]
+    corr_df.columns = display_names
+    corr_df.index = display_names
+    
+    # Create custom colorscale for better visualization
+    colorscale = [
+        [0.0, '#d73027'],    # Strong negative correlation - red
+        [0.25, '#f46d43'],   # Moderate negative - orange-red
+        [0.5, '#ffffff'],    # No correlation - white
+        [0.75, '#74add1'],   # Moderate positive - light blue
+        [1.0, '#313695']     # Strong positive correlation - dark blue
+    ]
+    
+    # Create heatmap
+    fig = go.Figure(data=go.Heatmap(
+        z=corr_df.values,
+        x=corr_df.columns,
+        y=corr_df.columns,
+        colorscale=colorscale,
+        zmid=0,
+        zmin=-1,
+        zmax=1,
+        text=np.around(corr_df.values, decimals=2),
+        texttemplate="%{text}",
+        textfont={"size": 10, "color": "black"},
+        hoverongaps=False,
+        hovertemplate='<b>%{y}</b> vs <b>%{x}</b><br>Correlation: %{z}<extra></extra>'
+    ))
+    
+    # Add colorbar title
+    fig.update_layout(
+        title=f"{ticker_symbol} Feature Correlation Matrix",
+        xaxis_title="Features",
+        yaxis_title="Features",
+        height=600,
+        width=800,
+        template="plotly_white",
+        font=dict(size=12)
+    )
+    
+    # Update colorbar
+    fig.update_traces(
+        colorbar=dict(
+            title="Correlation<br>Coefficient",
+            tickvals=[-1, -0.5, 0, 0.5, 1],
+            ticktext=['-1.0', '-0.5', '0.0', '0.5', '1.0']
+        )
+    )
+    
+    # Rotate x-axis labels for better readability
+    fig.update_xaxes(tickangle=45)
+    fig.update_yaxes(tickangle=0)
+    
+    # Make the layout square for better visual appeal
+    fig.update_layout(
+        xaxis=dict(scaleanchor="y", scaleratio=1),
+        margin=dict(l=100, r=100, t=80, b=100)
+    )
+    
+    if output_path:
+        pio.write_html(fig, file=output_path, auto_open=False)
+        return output_path
+    else:
+        return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
+
 # Routes
 @app.route('/')
 def index():
@@ -521,11 +649,20 @@ def analysis():
         combined_df['sentiment_pos_ma5'] = combined_df['sentiment_positive'].rolling(window=5).mean()
         combined_df['sentiment_neg_ma5'] = combined_df['sentiment_negative'].rolling(window=5).mean()
         
+        # Add more features for correlation analysis
+        combined_df['volume_change'] = combined_df['volume'].pct_change()
+        combined_df['high_low_ratio'] = combined_df['high'] / combined_df['low']
+        combined_df['open_close_ratio'] = combined_df['open'] / combined_df['close']
+        combined_df['price_volume_trend'] = combined_df['close'] * combined_df['volume']
+        
         # Drop NaN values
         combined_df = combined_df.dropna()
         
         # Create technical indicators chart
         tech_indicators_chart = create_technical_indicators_chart(combined_df)
+        
+        # Create correlation matrix chart
+        correlation_matrix_chart = create_correlation_matrix_chart(combined_df, ticker_symbol)
         
         # Step 4: Train model
         model = ModelClass(look_back=20)
@@ -889,6 +1026,11 @@ def analysis():
                     'title': 'Volume Analysis',
                     'html': volume_chart,
                     'description': 'Trading volume trends and patterns'
+                },
+                'correlation_matrix': {
+                    'title': 'Feature Correlation Matrix',
+                    'html': correlation_matrix_chart,
+                    'description': 'Correlation between price, volume, sentiment, and technical indicators'
                 }
             },
             'future_predictions': {
@@ -1035,4 +1177,4 @@ def compare():
                           synthetic_data_flags=synthetic_data_flags)
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8081)
+    app.run(debug=True, host='0.0.0.0', port=8980)
