@@ -973,19 +973,4 @@ def compare():
                           synthetic_data_flags=synthetic_data_flags)
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8081)
-
-# Function to create the technical indicators visualization
-def make_subplots(rows, cols, shared_xaxes=True, vertical_spacing=0.05, row_heights=None):
-    """
-    This function replicates the functionality of plotly's make_subplots.
-    """
-    fig = go.Figure()
-    
-    fig.update_layout(
-        grid = {'rows': rows, 'columns': cols, 'pattern': 'independent'},
-        plot_bgcolor='white',  # Sets background color to white
-        paper_bgcolor='white'  # Sets paper background color to white
-    )
-    
-    return fig
+    app.run(debug=True, host='0.0.0.0', port=8081)

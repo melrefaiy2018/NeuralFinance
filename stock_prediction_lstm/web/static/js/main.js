@@ -10,6 +10,196 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeChartTabs();
 });
 
+// Progress simulation variables
+let progressInterval = null;
+let currentProgress = 0;
+let currentStep = 0;
+
+// Progress simulation steps
+const progressSteps = [
+    { text: "Initializing AI models...", duration: 1000 },
+    { text: "Fetching market data...", duration: 1500 },
+    { text: "Processing historical data...", duration: 2000 },
+    { text: "Running sentiment analysis...", duration: 1800 },
+    { text: "Training LSTM model...", duration: 2500 },
+    { text: "Generating predictions...", duration: 1500 },
+    { text: "Creating visualizations...", duration: 1200 },
+    { text: "Finalizing analysis...", duration: 800 }
+];
+
+function startProgressSimulation() {
+    currentProgress = 0;
+    currentStep = 0;
+    
+    const progressCircle = document.getElementById('progress-circle');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const progressStepText = document.getElementById('progress-status');
+    const stepIndicators = document.querySelectorAll('[id^="step-"]');
+    
+    if (!progressCircle || !progressPercentage || !progressStepText) {
+        console.warn('Progress elements not found', {
+            progressCircle: !!progressCircle,
+            progressPercentage: !!progressPercentage,
+            progressStepText: !!progressStepText
+        });
+        return;
+    }
+    
+    // Initialize step indicators
+    stepIndicators.forEach((indicator, index) => {
+        indicator.classList.remove('animate-pulse', 'bg-cyan-500', 'bg-emerald-500');
+        indicator.classList.add('bg-neutral-600');
+    });
+    
+    // Start the progress animation
+    animateProgress();
+}
+
+function animateProgress() {
+    const progressCircle = document.getElementById('progress-circle');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const progressStepText = document.getElementById('progress-status');
+    const stepIndicators = document.querySelectorAll('[id^="step-"]');
+    
+    if (currentStep < progressSteps.length) {
+        const step = progressSteps[currentStep];
+        const targetProgress = ((currentStep + 1) / progressSteps.length) * 100;
+        
+        // Update step text
+        if (progressStepText) {
+            progressStepText.textContent = step.text;
+            progressStepText.classList.add('fade-in');
+        }
+        
+        // Update step indicators
+        if (stepIndicators[currentStep]) {
+            stepIndicators[currentStep].classList.add('animate-pulse');
+            stepIndicators[currentStep].classList.remove('bg-neutral-600');
+            stepIndicators[currentStep].classList.add('bg-cyan-500');
+        }
+        
+        // Animate progress circle and percentage
+        const progressDuration = step.duration;
+        const progressIncrement = (targetProgress - currentProgress) / (progressDuration / 50);
+        
+        const progressAnimationInterval = setInterval(() => {
+            currentProgress += progressIncrement;
+            
+            if (currentProgress >= targetProgress) {
+                currentProgress = targetProgress;
+                clearInterval(progressAnimationInterval);
+                
+                // Mark current step as completed
+                if (stepIndicators[currentStep]) {
+                    stepIndicators[currentStep].classList.remove('animate-pulse', 'bg-cyan-500');
+                    stepIndicators[currentStep].classList.add('bg-emerald-500');
+                }
+                
+                // Move to next step
+                currentStep++;
+                
+                // Continue with next step or finish
+                if (currentStep < progressSteps.length) {
+                    // Activate next step indicator
+                    if (stepIndicators[currentStep]) {
+                        stepIndicators[currentStep].classList.add('animate-pulse');
+                        stepIndicators[currentStep].classList.remove('bg-neutral-600');
+                        stepIndicators[currentStep].classList.add('bg-cyan-500');
+                    }
+                    setTimeout(() => animateProgress(), 300);
+                } else {
+                    // Simulation complete
+                    setTimeout(() => {
+                        currentProgress = 100;
+                        updateProgressDisplay();
+                    }, 200);
+                }
+            }
+            
+            updateProgressDisplay();
+        }, 50);
+    }
+}
+
+function updateProgressDisplay() {
+    const progressCircle = document.getElementById('progress-circle');
+    const progressPercentage = document.getElementById('progress-percentage');
+    
+    if (progressCircle) {
+        const circumference = 251.33; // Match the stroke-dasharray value in HTML
+        const strokeDashoffset = circumference - (currentProgress / 100) * circumference;
+        progressCircle.style.strokeDashoffset = strokeDashoffset;
+    }
+    
+    if (progressPercentage) {
+        progressPercentage.textContent = Math.round(currentProgress) + '%';
+    }
+}
+
+function resetProgress() {
+    currentProgress = 0;
+    currentStep = 0;
+    
+    if (progressInterval) {
+        clearInterval(progressInterval);
+        progressInterval = null;
+    }
+    
+    const progressCircle = document.getElementById('progress-circle');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const progressStepText = document.getElementById('progress-status');
+    const stepIndicators = document.querySelectorAll('[id^="step-"]');
+    
+    if (progressCircle) {
+        const circumference = 251.33; // Match the stroke-dasharray value in HTML
+        progressCircle.style.strokeDashoffset = circumference;
+    }
+    
+    if (progressPercentage) {
+        progressPercentage.textContent = '0%';
+    }
+    
+    if (progressStepText) {
+        progressStepText.textContent = 'Preparing analysis...';
+    }
+    
+    stepIndicators.forEach(indicator => {
+        indicator.classList.remove('animate-pulse', 'bg-cyan-500', 'bg-emerald-500');
+        indicator.classList.add('bg-neutral-600');
+    });
+}
+
+function showErrorState(errorMessage) {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const progressStepText = document.getElementById('progress-status');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const stepIndicators = document.querySelectorAll('[id^="step-"]');
+    
+    if (progressStepText) {
+        progressStepText.textContent = errorMessage || 'Analysis failed';
+        progressStepText.classList.add('text-red-400');
+    }
+    
+    if (progressPercentage) {
+        progressPercentage.textContent = 'Error';
+        progressPercentage.classList.add('text-red-400');
+    }
+    
+    // Mark all steps as failed
+    stepIndicators.forEach(indicator => {
+        indicator.classList.remove('animate-pulse', 'bg-cyan-500', 'bg-emerald-500', 'bg-neutral-600');
+        indicator.classList.add('bg-red-500');
+    });
+    
+    // Hide loading after a delay
+    setTimeout(() => {
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+        }
+        showErrorNotification('Analysis failed. Please try again.');
+    }, 2000);
+}
+
 function initializeEnhancedUI() {
     // Range slider for prediction days
     const predictionDaysSlider = document.getElementById('prediction_days');
@@ -105,6 +295,9 @@ function initializeFormHandling() {
             setTimeout(() => {
                 loadingIndicator.style.opacity = '1';
                 loadingIndicator.style.transform = 'translateY(0)';
+                
+                // Start progress simulation
+                startProgressSimulation();
             }, 100);
         }
         
@@ -122,6 +315,9 @@ function initializeFormHandling() {
     }
     
     function hideLoadingState() {
+        // Reset progress simulation
+        resetProgress();
+        
         if (loadingIndicator) {
             loadingIndicator.classList.add('hidden');
         }
@@ -444,3 +640,4 @@ window.toggleAccordion = toggleAccordion;
 window.switchTab = switchTab;
 window.formatCurrency = formatCurrency;
 window.formatPercentage = formatPercentage;
+window.showErrorState = showErrorState;
