@@ -13,6 +13,7 @@ PROJECT_ROOT="$(dirname "$PARENT_DIR")"
 export PYTHONPATH="$PARENT_DIR:$PROJECT_ROOT:$PYTHONPATH"
 
 echo "Starting Stock AI Assistant Flask App..."
+echo "Using same model logic as Streamlit app..."
 echo "Setting PYTHONPATH to include:"
 echo "  - $PARENT_DIR"
 echo "  - $PROJECT_ROOT"

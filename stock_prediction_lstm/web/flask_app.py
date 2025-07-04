@@ -31,11 +31,41 @@ tf.random.set_seed(42)
 # Enable deterministic operations for TensorFlow
 tf.config.experimental.enable_op_determinism()
 
+# Define fallback evaluation function first
+def emergency_evaluate_with_diagnostics(y_true, y_pred):
+    """Fallback evaluation function if emergency fixes are not available"""
+    from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+    import numpy as np
+    return {
+        'mse': mean_squared_error(y_true, y_pred),
+        'rmse': np.sqrt(mean_squared_error(y_true, y_pred)),
+        'mae': mean_absolute_error(y_true, y_pred),
+        'r2': r2_score(y_true, y_pred)
+    }
+
 # Import your modules (make sure these are in the same directory)
 try:
     from stock_prediction_lstm.data.fetchers import StockDataFetcher, SentimentAnalyzer
     from stock_prediction_lstm.data.processors import TechnicalIndicatorGenerator
-    from stock_prediction_lstm.models import StockSentimentModel
+    
+    # Try to import the improved model, fallback to original with fixes
+    try:
+        from stock_prediction_lstm.models.improved_model import ImprovedStockModel
+        from stock_prediction_lstm.utils.emergency_fixes import emergency_evaluate_with_diagnostics
+        ModelClass = ImprovedStockModel
+        print("🚀 Using improved model with emergency evaluation fixes")
+    except ImportError:
+        try:
+            from stock_prediction_lstm.models import StockSentimentModel
+            from stock_prediction_lstm.utils.model_fixes import apply_model_fixes
+            from stock_prediction_lstm.utils.emergency_fixes import emergency_evaluate_with_diagnostics
+            ModelClass = apply_model_fixes(StockSentimentModel)
+            print("🔧 Using original model with evaluation fixes applied")
+        except ImportError:
+            from stock_prediction_lstm.models import StockSentimentModel
+            ModelClass = StockSentimentModel
+            print("⚠️ Using original model without fixes (using fallback evaluation)")
+            
 except ImportError as e:
     print(f"Error importing required modules: {e}")
     print("Make sure all required module files are in the same directory as app.py")
@@ -498,7 +528,7 @@ def analysis():
         tech_indicators_chart = create_technical_indicators_chart(combined_df)
         
         # Step 4: Train model
-        model = StockSentimentModel(look_back=20)
+        model = ModelClass(look_back=20)
         X_market, X_sentiment, y = model.prepare_data(combined_df, target_col='close')
         
         # Split data
@@ -531,14 +561,46 @@ def analysis():
         # Make test predictions
         y_pred = model.predict(X_market_test, X_sentiment_test)
         
-        # Ensure correct shapes
+        # Ensure correct shapes for evaluation
         if y_test.ndim == 3:
             y_test_reshaped = y_test.reshape(y_test.shape[0], y_test.shape[2])
         else:
             y_test_reshaped = y_test
+            
+        # Transform predictions back to original scale for evaluation
+        if hasattr(model, 'price_scaler'):
+            y_test_original = model.price_scaler.inverse_transform(y_test_reshaped)
+            y_pred_original = model.price_scaler.inverse_transform(y_pred)
+        else:
+            y_test_original = y_test_reshaped
+            y_pred_original = y_pred
         
-        # Calculate metrics
-        metrics = model.evaluate(y_test_reshaped, y_pred)
+        # Calculate metrics using emergency evaluation method
+        try:
+            metrics = emergency_evaluate_with_diagnostics(y_test_original, y_pred_original)
+            print(f"Model evaluation metrics: {metrics}")
+        except Exception as e:
+            print(f"Error in evaluation: {e}")
+            # Fallback to basic metrics
+            from sklearn.metrics import mean_squared_error, mean_absolute_error
+            metrics = {
+                'mse': mean_squared_error(y_test_original, y_pred_original),
+                'rmse': np.sqrt(mean_squared_error(y_test_original, y_pred_original)),
+                'mae': mean_absolute_error(y_test_original, y_pred_original)
+            }
+        
+        # Debug information
+        print(f"Debug - y_test_original shape: {y_test_original.shape}")
+        print(f"Debug - y_pred_original shape: {y_pred_original.shape}")
+        print(f"Debug - y_test_original range: [{np.min(y_test_original):.6f}, {np.max(y_test_original):.6f}]")
+        print(f"Debug - y_pred_original range: [{np.min(y_pred_original):.6f}, {np.max(y_pred_original):.6f}]")
+        print(f"Debug - Current stock price: ${combined_df['close'].iloc[-1]:.2f}")
+        if hasattr(model, 'price_scaler'):
+            print(f"Debug - Scaler info:")
+            print(f"  - data_min_: {model.price_scaler.data_min_}")
+            print(f"  - data_max_: {model.price_scaler.data_max_}")
+            print(f"  - scale_: {model.price_scaler.scale_}")
+            print(f"  - feature_range: {model.price_scaler.feature_range}")
         
         # Step 5: Future predictions
         model.last_actual_price = combined_df['close'].iloc[-1]
