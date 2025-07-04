@@ -1,6 +1,0 @@
-# Ignore API keys to prevent accidental commits
-api_keys.py
-*.key
-*.secret
-.env
-secrets.json

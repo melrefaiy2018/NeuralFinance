@@ -1,5 +1,5 @@
 import click
-from stock_prediction_lstm.analysis.stock_analyzer import StockAnalyzer
+from ..analysis.stock_analyzer import StockAnalyzer
 
 @click.group()
 def cli():
