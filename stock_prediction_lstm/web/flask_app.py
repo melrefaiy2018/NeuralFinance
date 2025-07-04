@@ -53,11 +53,11 @@ def get_market_state():
     # This is a simplified check
     if now.weekday() < 5:  # Monday to Friday
         if 9 <= now.hour < 16:  # 9 AM to 4 PM (simplified)
-            return "Open 🟢", "The US stock market is currently open."
+            return "open", "The US stock market is currently open."
         else:
-            return "Closed 🔴", "The US stock market is currently closed."
+            return "closed", "The US stock market is currently closed."
     else:
-        return "Closed 🔴", "The US stock market is closed for the weekend."
+        return "closed", "The US stock market is closed for the weekend."
 
 def create_candlestick_chart(stock_df, ticker_symbol, output_path=None):
     """Create a candlestick chart and return the HTML or save to file"""
@@ -418,7 +418,6 @@ def analysis():
         os.makedirs(output_dir, exist_ok=True)
         
         # Step 1: Fetch stock data
-        stock_analyzer = StockAnalyzer()
         stock_fetcher = StockDataFetcher(ticker_symbol, period, interval)
         stock_df = stock_fetcher.fetch_data()
         
@@ -432,24 +431,10 @@ def analysis():
         except:
             stock_info = {'longName': ticker_symbol}
         
-        # Create charts
-        candlestick_chart = create_candlestick_chart(
-            stock_df, 
-            ticker_symbol, 
-            os.path.join(output_dir, 'candlestick.html')
-        )
-        
-        price_trends_chart = create_price_trends_chart(
-            stock_df, 
-            ticker_symbol, 
-            os.path.join(output_dir, 'price_trends.html')
-        )
-        
-        volume_chart = create_volume_chart(
-            stock_df, 
-            ticker_symbol, 
-            os.path.join(output_dir, 'volume.html')
-        )
+        # Create charts (return HTML directly instead of saving to files)
+        candlestick_chart = create_candlestick_chart(stock_df, ticker_symbol)
+        price_trends_chart = create_price_trends_chart(stock_df, ticker_symbol)
+        volume_chart = create_volume_chart(stock_df, ticker_symbol)
         
         # Calculate key metrics
         current_price = stock_df['close'].iloc[-1]
@@ -510,10 +495,7 @@ def analysis():
         combined_df = combined_df.dropna()
         
         # Create technical indicators chart
-        tech_indicators_chart = create_technical_indicators_chart(
-            combined_df,
-            os.path.join(output_dir, 'technical_indicators.html')
-        )
+        tech_indicators_chart = create_technical_indicators_chart(combined_df)
         
         # Step 4: Train model
         model = StockSentimentModel(look_back=20)
@@ -595,8 +577,7 @@ def analysis():
             hist_prices,
             future_dates,
             future_prices,
-            ticker_symbol,
-            os.path.join(output_dir, 'future_predictions.html')
+            ticker_symbol
         )
         
         # Calculate predicted returns
@@ -799,8 +780,72 @@ def analysis():
             }
         }
         
+        # Get market state
+        market_state, market_message = get_market_state()
+        
+        # Prepare data for the new template structure
+        template_data = {
+            'ticker_symbol': ticker_symbol.upper(),
+            'company_name': stock_info.get('longName', ticker_symbol),
+            'period': period,
+            'interval': interval,
+            'prediction_days': prediction_days,
+            'market_state': market_state,
+            'current_price': current_price,
+            'price_change': price_change,
+            'predicted_return': overall_return,
+            'analysis_conclusion': sentiment,
+            'volatility': {
+                'level': risk_level,
+                'value': volatility
+            },
+            'model_performance': {
+                'r2_score': metrics['r2'],
+                'rmse': metrics['rmse'],
+                'mae': metrics['mae'],
+                'mape': metrics.get('mape', 0.0)
+            },
+            'sentiment_score': avg_pos / 100.0,
+            'company_info': stock_info,
+            'charts': {
+                'price_history': {
+                    'title': 'Price History',
+                    'html': candlestick_chart,
+                    'description': 'Historical price movements with candlestick representation'
+                },
+                'future_prediction': {
+                    'title': 'Future Prediction',
+                    'html': future_predictions_chart,
+                    'description': 'Predicted price path with confidence intervals'
+                },
+                'technical_indicators': {
+                    'title': 'Technical Analysis',
+                    'html': tech_indicators_chart,
+                    'description': 'Technical indicators and trading signals'
+                },
+                'volume_analysis': {
+                    'title': 'Volume Analysis',
+                    'html': volume_chart,
+                    'description': 'Trading volume trends and patterns'
+                }
+            },
+            'future_predictions': {
+                str(i): {
+                    'date': pred_data['date'],
+                    'price': float(pred_data['price'].replace('$', '')),
+                    'change': float(pred_data['change'].replace('%', '').replace('+', ''))
+                }
+                for i, pred_data in enumerate(prediction_data)
+            },
+            'technical_indicators': {
+                'rsi': f"{combined_df['rsi14'].iloc[-1]:.2f}" if 'rsi14' in combined_df.columns else 'N/A',
+                'macd': f"{combined_df['macd'].iloc[-1]:.4f}" if 'macd' in combined_df.columns else 'N/A',
+                'bb_position': 'N/A'  # Add more indicators as needed
+            }
+        }
+        
         # Render the dashboard template
-        return render_template('dashboard.html', data=dashboard_data)
+        return render_template('dashboard.html', **template_data)
     
     except Exception as e:
         return render_template('error.html', 

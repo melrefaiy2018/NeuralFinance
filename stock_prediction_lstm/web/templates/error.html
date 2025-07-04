@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error - Stock AI Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen bg-gray-100 text-gray-800">
+
+    <!-- Global Header -->
+    <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-10">
+        <div class="flex items-center">
+            <svg class="w-8 h-8 text-indigo-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L11 2m7 12v3m-3 3h6m-3-6v6"></path>
+            </svg>
+            <h1 class="text-2xl font-bold text-gray-900">Stock AI</h1>
+        </div>
+        <a href="{{ url_for('index') }}" class="text-indigo-600 hover:text-indigo-800 font-medium">
+            ← Back to Dashboard
+        </a>
+    </header>
+
+    <main class="flex-1 flex items-center justify-center p-6">
+        <div class="max-w-md w-full bg-white rounded-lg shadow-md p-8 text-center">
+            <!-- Error Icon -->
+            <div class="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-red-100 mb-6">
+                <svg class="h-10 w-10 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            </div>
+
+            <h2 class="text-2xl font-bold text-gray-900 mb-4">Analysis Error</h2>
+            
+            {% if message %}
+            <p class="text-gray-600 mb-6">{{ message }}</p>
+            {% else %}
+            <p class="text-gray-600 mb-6">An error occurred during the stock analysis. Please try again with different parameters.</p>
+            {% endif %}
+
+            {% if error_details %}
+            <div class="mb-6 p-4 bg-red-50 rounded-lg border border-red-200">
+                <h3 class="text-sm font-medium text-red-800 mb-2">Error Details:</h3>
+                <p class="text-sm text-red-700">{{ error_details }}</p>
+            </div>
+            {% endif %}
+
+            <div class="space-y-3">
+                <a href="{{ url_for('index') }}" class="w-full bg-indigo-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition duration-200 ease-in-out shadow-md block">
+                    Try Again
+                </a>
+                
+                <div class="text-sm text-gray-500">
+                    <p>Common solutions:</p>
+                    <ul class="mt-2 text-left space-y-1">
+                        <li>• Check that the stock ticker is valid</li>
+                        <li>• Try a different time period or interval</li>
+                        <li>• Ensure the market is open for real-time data</li>
+                        <li>• Verify your internet connection</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 text-xs p-4 text-center">
+        <p>&copy; 2025 Stock AI Assistant | Powered by Machine Learning and Sentiment Analysis</p>
+    </footer>
+
+</body>
+</html>

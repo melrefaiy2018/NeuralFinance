@@ -1,0 +1,59 @@
+/* Additional custom styles for the Stock AI Dashboard */
+
+/* Ensure charts are responsive */
+.chart-container {
+    width: 100%;
+    height: auto;
+}
+
+/* Custom tab styling */
+.tab-button.active-tab {
+    border-color: #4f46e5 !important;
+    color: #4f46e5 !important;
+}
+
+/* Animation for loading spinner */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
+
+/* Smooth transitions */
+.transition-all {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Ensure proper spacing for mobile */
+@media (max-width: 768px) {
+    .tab-button {
+        font-size: 0.875rem;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .grid-cols-1 {
+        gap: 1rem;
+    }
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
