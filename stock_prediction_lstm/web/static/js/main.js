@@ -1,15 +1,235 @@
-// Enhanced JavaScript for Stock AI Dashboard
+// Enhanced JavaScript for Stock AI Pro
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize chart tabs if they exist
+    // Initialize enhanced interactivity
+    initializeEnhancedUI();
+    initializeFormHandling();
+    initializePopularStocks();
+    initializeTooltips();
+    initializeAnimations();
     initializeChartTabs();
-    
-    // Initialize form enhancements
-    initializeFormEnhancements();
-    
-    // Initialize tooltips and help text
-    initializeHelpers();
 });
+
+function initializeEnhancedUI() {
+    // Range slider for prediction days
+    const predictionDaysSlider = document.getElementById('prediction_days');
+    const daysPredictValue = document.getElementById('days-predict-value');
+    
+    if (predictionDaysSlider && daysPredictValue) {
+        predictionDaysSlider.addEventListener('input', function() {
+            daysPredictValue.textContent = this.value;
+            
+            // Add visual feedback
+            const percentage = (this.value - this.min) / (this.max - this.min) * 100;
+            this.style.background = `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${percentage}%, #374151 ${percentage}%, #374151 100%)`;
+        });
+        
+        // Initialize slider background
+        const initialPercentage = (predictionDaysSlider.value - predictionDaysSlider.min) / (predictionDaysSlider.max - predictionDaysSlider.min) * 100;
+        predictionDaysSlider.style.background = `linear-gradient(to right, #06b6d4 0%, #06b6d4 ${initialPercentage}%, #374151 ${initialPercentage}%, #374151 100%)`;
+    }
+    
+    // Enhanced ticker input
+    const tickerInput = document.getElementById('ticker_symbol');
+    if (tickerInput) {
+        tickerInput.addEventListener('input', function(e) {
+            // Convert to uppercase
+            e.target.value = e.target.value.toUpperCase();
+            
+            // Add typing animation effect
+            e.target.classList.add('scale-in');
+            setTimeout(() => {
+                e.target.classList.remove('scale-in');
+            }, 200);
+        });
+        
+        tickerInput.addEventListener('focus', function() {
+            this.parentElement.classList.add('ring-2', 'ring-cyan-500', 'ring-opacity-50');
+        });
+        
+        tickerInput.addEventListener('blur', function() {
+            this.parentElement.classList.remove('ring-2', 'ring-cyan-500', 'ring-opacity-50');
+        });
+    }
+}
+
+function initializeFormHandling() {
+    const analysisForm = document.getElementById('analysis-form');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const welcomeScreen = document.getElementById('welcome-screen');
+    const runButton = document.getElementById('run-analysis-btn');
+    
+    if (analysisForm) {
+        analysisForm.addEventListener('submit', function(e) {
+            // Show enhanced loading state
+            showEnhancedLoadingState();
+            
+            // Add form validation
+            const ticker = document.getElementById('ticker_symbol').value.trim();
+            if (!ticker) {
+                e.preventDefault();
+                showErrorNotification('Please enter a stock ticker symbol');
+                hideLoadingState();
+                return;
+            }
+            
+            if (ticker.length > 5) {
+                e.preventDefault();
+                showErrorNotification('Ticker symbol should be 5 characters or less');
+                hideLoadingState();
+                return;
+            }
+            
+            // Smooth scroll to top
+            window.scrollTo({ 
+                top: 0, 
+                behavior: 'smooth' 
+            });
+        });
+    }
+    
+    function showEnhancedLoadingState() {
+        if (welcomeScreen) {
+            welcomeScreen.style.opacity = '0';
+            welcomeScreen.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                welcomeScreen.classList.add('hidden');
+            }, 300);
+        }
+        
+        if (loadingIndicator) {
+            loadingIndicator.classList.remove('hidden');
+            loadingIndicator.style.opacity = '0';
+            loadingIndicator.style.transform = 'translateY(20px)';
+            
+            setTimeout(() => {
+                loadingIndicator.style.opacity = '1';
+                loadingIndicator.style.transform = 'translateY(0)';
+            }, 100);
+        }
+        
+        if (runButton) {
+            runButton.disabled = true;
+            runButton.innerHTML = `
+                <span class="flex items-center justify-center">
+                    <svg class="animate-spin w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                    Processing...
+                </span>
+            `;
+        }
+    }
+    
+    function hideLoadingState() {
+        if (loadingIndicator) {
+            loadingIndicator.classList.add('hidden');
+        }
+        
+        if (welcomeScreen) {
+            welcomeScreen.classList.remove('hidden');
+            welcomeScreen.style.opacity = '1';
+            welcomeScreen.style.transform = 'translateY(0)';
+        }
+        
+        if (runButton) {
+            runButton.disabled = false;
+            runButton.innerHTML = `
+                <span class="flex items-center justify-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    Run AI Analysis
+                </span>
+            `;
+        }
+    }
+}
+
+function initializePopularStocks() {
+    const popularStockBtns = document.querySelectorAll('.popular-stock-btn');
+    const tickerInput = document.getElementById('ticker_symbol');
+    
+    popularStockBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const ticker = this.dataset.ticker;
+            
+            if (tickerInput) {
+                // Add selection animation
+                tickerInput.value = ticker;
+                tickerInput.classList.add('scale-in');
+                
+                // Visual feedback for selected stock
+                popularStockBtns.forEach(b => {
+                    b.classList.remove('bg-gradient-to-r', 'from-cyan-500/20', 'to-blue-500/20', 'border-cyan-500');
+                    b.classList.add('bg-neutral-800/50', 'border-neutral-700/50');
+                });
+                
+                this.classList.remove('bg-neutral-800/50', 'border-neutral-700/50');
+                this.classList.add('bg-gradient-to-r', 'from-cyan-500/20', 'to-blue-500/20', 'border-cyan-500');
+                
+                // Remove animation class after animation completes
+                setTimeout(() => {
+                    tickerInput.classList.remove('scale-in');
+                }, 200);
+                
+                // Show success notification
+                showSuccessNotification(`Selected ${ticker}`);
+            }
+        });
+        
+        // Add hover effects
+        btn.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-2px)';
+        });
+        
+        btn.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0)';
+        });
+    });
+}
+
+function initializeTooltips() {
+    // Add tooltips to various elements
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', function() {
+            showTooltip(this, this.dataset.tooltip);
+        });
+        
+        element.addEventListener('mouseleave', function() {
+            hideTooltip();
+        });
+    });
+}
+
+function initializeAnimations() {
+    // Intersection Observer for scroll animations
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('fade-in');
+            }
+        });
+    }, observerOptions);
+    
+    // Observe elements that should animate on scroll
+    const animatableElements = document.querySelectorAll('.metric-card-enhanced, .chart-container, .feature-card');
+    animatableElements.forEach(el => observer.observe(el));
+    
+    // Add staggered animation to feature cards
+    const featureCards = document.querySelectorAll('.group');
+    featureCards.forEach((card, index) => {
+        card.style.animationDelay = `${index * 0.1}s`;
+        card.classList.add('fade-in');
+    });
+}
 
 function initializeChartTabs() {
     const tabButtons = document.querySelectorAll('.tab-button');
@@ -21,18 +241,19 @@ function initializeChartTabs() {
         button.addEventListener('click', () => {
             // Remove active class from all buttons and hide all content
             tabButtons.forEach(btn => {
-                btn.classList.remove('active-tab', 'border-indigo-500', 'text-indigo-600');
-                btn.classList.add('border-transparent', 'text-gray-600');
+                btn.classList.remove('active-tab', 'border-cyan-500', 'text-cyan-400');
+                btn.classList.add('border-transparent', 'text-neutral-400');
             });
             tabContents.forEach(content => content.classList.add('hidden'));
 
             // Add active class to clicked button and show corresponding content
-            button.classList.add('active-tab', 'border-indigo-500', 'text-indigo-600');
-            button.classList.remove('border-transparent', 'text-gray-600');
+            button.classList.add('active-tab', 'border-cyan-500', 'text-cyan-400');
+            button.classList.remove('border-transparent', 'text-neutral-400');
             
             const targetTab = document.getElementById(button.dataset.tab);
             if (targetTab) {
                 targetTab.classList.remove('hidden');
+                targetTab.classList.add('fade-in');
             }
         });
     });
@@ -44,89 +265,162 @@ function initializeChartTabs() {
     }
 }
 
-function initializeFormEnhancements() {
-    // Days to predict input enhancement
-    const daysInput = document.getElementById('prediction_days');
-    const daysDisplay = document.getElementById('days-predict-value');
-    
-    if (daysInput && daysDisplay) {
-        daysInput.addEventListener('input', () => {
-            daysDisplay.textContent = daysInput.value;
-        });
-    }
+// Utility functions
+function showSuccessNotification(message) {
+    showNotification(message, 'success');
+}
 
-    // Popular stock selection
-    const popularStockBtns = document.querySelectorAll('.popular-stock-btn');
-    const tickerInput = document.getElementById('ticker_symbol');
-    
-    if (popularStockBtns.length > 0 && tickerInput) {
-        popularStockBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const ticker = btn.dataset.ticker;
-                tickerInput.value = ticker;
-                
-                // Visual feedback
-                popularStockBtns.forEach(b => {
-                    b.classList.remove('bg-indigo-100', 'border-indigo-300');
-                    b.classList.add('bg-white', 'border-gray-200');
-                });
-                btn.classList.add('bg-indigo-100', 'border-indigo-300');
-                btn.classList.remove('bg-white', 'border-gray-200');
-            });
-        });
-    }
+function showErrorNotification(message) {
+    showNotification(message, 'error');
+}
 
-    // Ticker input uppercase conversion
-    if (tickerInput) {
-        tickerInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.toUpperCase();
-        });
-    }
-
-    // Form submission enhancement
-    const analysisForm = document.getElementById('analysis-form');
-    const loadingIndicator = document.getElementById('loading-indicator');
-    const welcomeScreen = document.getElementById('welcome-screen');
+function showNotification(message, type = 'info') {
+    // Remove existing notifications
+    const existingNotifications = document.querySelectorAll('.notification');
+    existingNotifications.forEach(notification => notification.remove());
     
-    if (analysisForm && loadingIndicator) {
-        analysisForm.addEventListener('submit', (e) => {
-            // Show loading indicator
-            if (welcomeScreen) {
-                welcomeScreen.classList.add('hidden');
-            }
-            loadingIndicator.classList.remove('hidden');
-            
-            // Scroll to top
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+    const notification = document.createElement('div');
+    notification.classList.add('notification', 'fixed', 'top-4', 'right-4', 'z-50', 'p-4', 'rounded-lg', 'shadow-lg', 'transition-all', 'duration-300', 'transform', 'translate-x-full');
+    
+    const colors = {
+        success: 'bg-emerald-500 text-white',
+        error: 'bg-red-500 text-white',
+        info: 'bg-cyan-500 text-white'
+    };
+    
+    notification.classList.add(...colors[type].split(' '));
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(() => {
+        notification.classList.remove('translate-x-full');
+    }, 100);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.classList.add('translate-x-full');
+        setTimeout(() => {
+            notification.remove();
+        }, 300);
+    }, 3000);
+}
+
+function showTooltip(element, text) {
+    const tooltip = document.createElement('div');
+    tooltip.classList.add('tooltip-popup', 'absolute', 'z-50', 'px-3', 'py-2', 'text-sm', 'text-white', 'bg-gray-900', 'rounded-lg', 'shadow-lg', 'opacity-0', 'transition-opacity', 'duration-200');
+    tooltip.textContent = text;
+    
+    document.body.appendChild(tooltip);
+    
+    const rect = element.getBoundingClientRect();
+    tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+    tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+    
+    setTimeout(() => {
+        tooltip.classList.remove('opacity-0');
+    }, 100);
+}
+
+function hideTooltip() {
+    const tooltip = document.querySelector('.tooltip-popup');
+    if (tooltip) {
+        tooltip.classList.add('opacity-0');
+        setTimeout(() => {
+            tooltip.remove();
+        }, 200);
     }
 }
 
-function initializeHelpers() {
-    // Add tooltip functionality for info icons
-    const infoIcons = document.querySelectorAll('[title]');
-    infoIcons.forEach(icon => {
-        icon.addEventListener('mouseenter', (e) => {
-            // You can add custom tooltip styling here
-            e.target.style.cursor = 'help';
-        });
-    });
-}
-
-// Accordion toggle function
+// Accordion functionality
 function toggleAccordion(id) {
     const content = document.getElementById(id + '-content');
     const arrow = document.getElementById(id + '-arrow');
     
     if (content && arrow) {
-        if (content.classList.contains('hidden')) {
+        const isHidden = content.classList.contains('hidden');
+        
+        if (isHidden) {
             content.classList.remove('hidden');
-            arrow.classList.add('rotate-180');
+            content.style.maxHeight = '0';
+            content.style.opacity = '0';
+            
+            // Animate expansion
+            setTimeout(() => {
+                content.style.maxHeight = content.scrollHeight + 'px';
+                content.style.opacity = '1';
+            }, 10);
+            
+            arrow.style.transform = 'rotate(180deg)';
         } else {
-            content.classList.add('hidden');
-            arrow.classList.remove('rotate-180');
+            content.style.maxHeight = '0';
+            content.style.opacity = '0';
+            arrow.style.transform = 'rotate(0deg)';
+            
+            setTimeout(() => {
+                content.classList.add('hidden');
+            }, 300);
         }
     }
+}
+
+// Tab functionality for dashboard pages
+function switchTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.querySelectorAll('[data-tab-content]');
+    const tabButtons = document.querySelectorAll('[data-tab]');
+    
+    tabContents.forEach(content => {
+        content.classList.add('hidden');
+        content.classList.remove('fade-in');
+    });
+    
+    tabButtons.forEach(button => {
+        button.classList.remove('active-tab');
+    });
+    
+    // Show selected tab content
+    const targetContent = document.querySelector(`[data-tab-content="${tabName}"]`);
+    const targetButton = document.querySelector(`[data-tab="${tabName}"]`);
+    
+    if (targetContent) {
+        targetContent.classList.remove('hidden');
+        setTimeout(() => {
+            targetContent.classList.add('fade-in');
+        }, 50);
+    }
+    
+    if (targetButton) {
+        targetButton.classList.add('active-tab');
+    }
+}
+
+// Enhanced chart responsiveness
+function handleChartResize() {
+    const charts = document.querySelectorAll('.chart-container');
+    charts.forEach(chart => {
+        // Trigger chart library resize if available
+        if (window.Plotly && chart.querySelector('.plotly-graph-div')) {
+            window.Plotly.Plots.resize(chart.querySelector('.plotly-graph-div'));
+        }
+    });
+}
+
+// Listen for window resize
+window.addEventListener('resize', debounce(handleChartResize, 250));
+
+// Debounce utility function
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
 }
 
 // Utility function to format numbers
@@ -145,7 +439,8 @@ function formatPercentage(value) {
     }).format(value / 100);
 }
 
-// Export functions for global use
+// Make functions globally available
 window.toggleAccordion = toggleAccordion;
+window.switchTab = switchTab;
 window.formatCurrency = formatCurrency;
 window.formatPercentage = formatPercentage;
