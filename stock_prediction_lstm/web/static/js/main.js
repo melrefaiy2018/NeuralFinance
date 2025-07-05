@@ -11,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Progress simulation variables
-let progressInterval = null;
 let currentProgress = 0;
 let currentStep = 0;
 
