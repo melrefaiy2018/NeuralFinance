@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock AI Pro - Advanced Stock Analysis</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'inter': ['Inter', 'sans-serif'],
+                        'montserrat': ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="flex flex-col min-h-screen font-inter bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 text-neutral-100">
+    <!-- Global Header -->
+    <header class="bg-neutral-900/90 backdrop-blur-md shadow-2xl p-4 flex justify-between items-center sticky top-0 z-20 border-b border-neutral-800/50">
+        <div class="flex items-center">
+            <!-- Premium App Logo -->
+            <div class="relative">
+                <div class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-lg blur opacity-75"></div>
+                <svg class="relative w-10 h-10 text-white p-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg shadow-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L11 2m7 12v3m-3 3h6m-3-6v6"></path>
+                </svg>
+            </div>
+            <h1 class="ml-3 text-3xl font-extrabold text-white tracking-wide font-montserrat">
+                Stock AI Pro
+                <span class="text-xs font-normal text-cyan-400 block">Advanced AI Analytics</span>
+            </h1>
+        </div>
+        
+        <!-- Header Stats -->
+        <div class="hidden md:flex items-center space-x-6 text-sm">
+            {% set show_label = true %}
+            {% set label_text = 'Market' %}
+            {% set layout = 'vertical' %}
+            {% include 'partials/market_status.html' %}
+            <div class="h-8 w-px bg-neutral-700"></div>
+            <div class="text-center">
+                <div class="text-cyan-400 font-semibold">Models</div>
+                <div class="text-emerald-400">Active</div>
+            </div>
+        </div>
+
+        <!-- Settings Icon -->
+        <button class="text-neutral-400 hover:text-cyan-300 focus:outline-none transition-all duration-200 p-2 rounded-lg hover:bg-neutral-800">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            </svg>
+        </button>
+    </header>
+
+    <main class="flex flex-1 flex-col lg:flex-row">
+        <!-- Enhanced Sidebar -->
+        <aside class="w-full lg:w-80 bg-neutral-900/50 backdrop-blur-sm p-6 border-r border-neutral-800/50 flex-shrink-0 z-10">
+            <!-- Analysis Parameters Section -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-semibold text-white font-montserrat">Analysis Setup</h2>
+                    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                </div>
+                
+                <form id="analysis-form" action="{{ url_for('analysis') }}" method="POST" class="space-y-5">
+                    <!-- Stock Ticker Input -->
+                    <div class="space-y-2">
+                        <label for="ticker_symbol" class="block text-sm font-medium text-neutral-300">Stock Ticker</label>
+                        <div class="relative">
+                            <input type="text" id="ticker_symbol" name="ticker_symbol" value="NVDA" placeholder="Enter ticker..."
+                                   class="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-lg text-white placeholder-neutral-500 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200 backdrop-blur-sm">
+                            <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+                                <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </div>
+                        </div>
+                        <p class="text-xs text-neutral-400">Popular: AAPL, MSFT, GOOGL, AMZN, TSLA</p>
+                    </div>
+
+                    <!-- Time Period -->
+                    <div class="space-y-2">
+                        <label for="period" class="block text-sm font-medium text-neutral-300">Time Period</label>
+                        <select id="period" name="period" class="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-lg text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200">
+                            <option value="1y">1 Year</option>
+                            <option value="2y" selected>2 Years</option>
+                            <option value="5y">5 Years</option>
+                            <option value="max">Maximum</option>
+                        </select>
+                    </div>
+
+                    <!-- Interval -->
+                    <div class="space-y-2">
+                        <label for="interval" class="block text-sm font-medium text-neutral-300">Data Interval</label>
+                        <select id="interval" name="interval" class="w-full px-4 py-3 bg-neutral-800/50 border border-neutral-700/50 rounded-lg text-white focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-200">
+                            <option value="1h">1 Hour</option>
+                            <option value="1d" selected>1 Day</option>
+                            <option value="1wk">1 Week</option>
+                        </select>
+                    </div>
+
+                    <!-- Prediction Days -->
+                    <div class="space-y-2">
+                        <label for="prediction_days" class="block text-sm font-medium text-neutral-300">Prediction Days</label>
+                        <div class="relative">
+                            <input type="range" id="prediction_days" name="prediction_days" value="5" min="1" max="30"
+                                   class="w-full h-2 bg-neutral-700 rounded-lg appearance-none cursor-pointer prediction-slider">
+                            <div class="flex justify-between text-xs text-neutral-500 mt-1">
+                                <span>1</span>
+                                <span>15</span>
+                                <span>30</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-cyan-400">Forecasting <span id="days-predict-value" class="font-semibold">5</span> days ahead</p>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" id="run-analysis-btn" class="w-full mt-6 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500/50">
+                        <span class="flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                            </svg>
+                            Run AI Analysis
+                        </span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mt-8 space-y-4">
+                <h3 class="text-lg font-medium text-white">Quick Actions</h3>
+                
+                <!-- Popular Stocks -->
+                <div class="bg-neutral-800/30 rounded-lg p-4 border border-neutral-700/50">
+                    <h4 class="text-sm font-medium text-neutral-300 mb-3">Popular Stocks</h4>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" class="popular-stock-btn group p-3 text-left bg-neutral-800/50 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 rounded-lg border border-neutral-700/50 hover:border-cyan-500/50 transition-all duration-200" data-ticker="AAPL">
+                            <div class="font-medium text-white group-hover:text-cyan-300">AAPL</div>
+                            <div class="text-xs text-neutral-400">Apple Inc.</div>
+                        </button>
+                        <button type="button" class="popular-stock-btn group p-3 text-left bg-neutral-800/50 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 rounded-lg border border-neutral-700/50 hover:border-cyan-500/50 transition-all duration-200" data-ticker="MSFT">
+                            <div class="font-medium text-white group-hover:text-cyan-300">MSFT</div>
+                            <div class="text-xs text-neutral-400">Microsoft</div>
+                        </button>
+                        <button type="button" class="popular-stock-btn group p-3 text-left bg-neutral-800/50 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 rounded-lg border border-neutral-700/50 hover:border-cyan-500/50 transition-all duration-200" data-ticker="GOOGL">
+                            <div class="font-medium text-white group-hover:text-cyan-300">GOOGL</div>
+                            <div class="text-xs text-neutral-400">Alphabet</div>
+                        </button>
+                        <button type="button" class="popular-stock-btn group p-3 text-left bg-neutral-800/50 hover:bg-gradient-to-r hover:from-cyan-500/10 hover:to-blue-500/10 rounded-lg border border-neutral-700/50 hover:border-cyan-500/50 transition-all duration-200" data-ticker="TSLA">
+                            <div class="font-medium text-white group-hover:text-cyan-300">TSLA</div>
+                            <div class="text-xs text-neutral-400">Tesla</div>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Market Info -->
+                <div class="bg-neutral-800/30 rounded-lg p-4 border border-neutral-700/50">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-medium text-neutral-300">Market Overview</h4>
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        {% set show_label = true %}
+                        {% set label_text = 'Status:' %}
+                        {% set layout = 'horizontal' %}
+                        {% include 'partials/market_status.html' %}
+                        <div class="flex justify-between">
+                            <span class="text-neutral-400">Models:</span>
+                            <span class="text-cyan-400">AI Ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <section class="flex-1 p-6 lg:p-8 overflow-y-auto">
+            <!-- Welcome State -->
+            <div id="welcome-screen" class="space-y-8">
+                <!-- Hero Section -->
+                <div class="text-center py-12">
+                    <div class="relative inline-block">
+                        <div class="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full blur-xl opacity-30"></div>
+                        <div class="relative bg-gradient-to-r from-cyan-500 to-blue-600 p-6 rounded-full">
+                            <svg class="w-16 h-16 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h1 class="text-4xl font-bold text-white mt-6 font-montserrat">Welcome to Stock AI Pro</h1>
+                    <p class="text-xl text-neutral-400 mt-3 max-w-2xl mx-auto">Advanced AI-powered stock analysis and prediction platform using cutting-edge machine learning models</p>
+                </div>
+
+                <!-- Feature Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- AI Predictions -->
+                    <div class="group relative overflow-hidden bg-gradient-to-br from-cyan-500/10 to-blue-600/10 backdrop-blur-sm border border-cyan-500/20 rounded-xl p-6 hover:border-cyan-400/40 transition-all duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/5 to-blue-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="relative">
+                            <div class="w-12 h-12 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">AI Predictions</h3>
+                            <p class="text-neutral-400 text-sm">Advanced LSTM neural networks with attention mechanisms for accurate price forecasting</p>
+                        </div>
+                    </div>
+
+                    <!-- Sentiment Analysis -->
+                    <div class="group relative overflow-hidden bg-gradient-to-br from-emerald-500/10 to-green-600/10 backdrop-blur-sm border border-emerald-500/20 rounded-xl p-6 hover:border-emerald-400/40 transition-all duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-green-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="relative">
+                            <div class="w-12 h-12 bg-gradient-to-r from-emerald-500 to-green-600 rounded-lg flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">Sentiment Analysis</h3>
+                            <p class="text-neutral-400 text-sm">Real-time market sentiment from news, social media, and financial reports</p>
+                        </div>
+                    </div>
+
+                    <!-- Real-time Data -->
+                    <div class="group relative overflow-hidden bg-gradient-to-br from-violet-500/10 to-purple-600/10 backdrop-blur-sm border border-violet-500/20 rounded-xl p-6 hover:border-violet-400/40 transition-all duration-300">
+                        <div class="absolute inset-0 bg-gradient-to-br from-violet-500/5 to-purple-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="relative">
+                            <div class="w-12 h-12 bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg flex items-center justify-center mb-4">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-white mb-2">Real-time Data</h3>
+                            <p class="text-neutral-400 text-sm">Live market data with comprehensive technical indicators and analysis</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Getting Started -->
+                <div class="bg-neutral-800/30 backdrop-blur-sm border border-neutral-700/50 rounded-xl p-8 text-center">
+                    <h2 class="text-2xl font-semibold text-white mb-4 font-montserrat">Get Started</h2>
+                    <p class="text-neutral-400 mb-6 max-w-2xl mx-auto">Enter a stock ticker symbol in the sidebar and configure your analysis parameters to begin generating AI-powered predictions and insights.</p>
+                    <div class="flex flex-wrap justify-center gap-4">
+                        <div class="flex items-center text-sm text-neutral-300">
+                            <div class="w-2 h-2 bg-emerald-400 rounded-full mr-2"></div>
+                            Real-time market data
+                        </div>
+                        <div class="flex items-center text-sm text-neutral-300">
+                            <div class="w-2 h-2 bg-cyan-400 rounded-full mr-2"></div>
+                            AI-powered predictions
+                        </div>
+                        <div class="flex items-center text-sm text-neutral-300">
+                            <div class="w-2 h-2 bg-violet-400 rounded-full mr-2"></div>
+                            Sentiment analysis
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="hidden">
+                <div class="flex flex-col items-center justify-center py-20 bg-neutral-800/30 backdrop-blur-sm rounded-xl border border-neutral-700/50">
+                    <!-- Circular Progress -->
+                    <div class="relative w-32 h-32 mb-6">
+                        <!-- Background Circle -->
+                        <svg class="w-32 h-32 transform -rotate-90" viewBox="0 0 100 100" aria-hidden="true" focusable="false">
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" fill="none" class="text-neutral-700"/>
+                            <circle cx="50" cy="50" r="40" stroke="currentColor" stroke-width="8" fill="none" 
+                                    class="text-cyan-500 transition-all duration-300 ease-out" 
+                                    stroke-dasharray="251.33" 
+                                    stroke-dashoffset="251.33"
+                                    stroke-linecap="round"
+                                    id="progress-circle"/>
+                        </svg>
+                        <!-- Progress Percentage -->
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <span id="progress-percentage" class="text-2xl font-bold text-cyan-400">0%</span>
+                        </div>
+                        <!-- Spinning Ring -->
+                        <div class="absolute inset-0 w-32 h-32 border-4 border-transparent border-t-cyan-300 rounded-full animate-spin opacity-30"></div>
+                    </div>
+                    
+                    <h3 class="text-xl font-semibold text-white mb-2">Running AI Analysis</h3>
+                    <p id="progress-status" class="text-neutral-400 mb-4">Initializing analysis...</p>
+                    
+                    <!-- Progress Steps -->
+                    <div class="flex items-center space-x-3 text-xs flex-wrap justify-center max-w-2xl">
+                        <div class="flex items-center space-x-1">
+                            <div id="step-0" class="w-2 h-2 bg-neutral-600 rounded-full"></div>
+                            <span class="text-neutral-500">Initialize</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div id="step-1" class="w-2 h-2 bg-neutral-600 rounded-full"></div>
+                            <span class="text-neutral-500">Fetch Data</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div id="step-2" class="w-2 h-2 bg-neutral-600 rounded-full"></div>
+                            <span class="text-neutral-500">Process</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div id="step-3" class="w-2 h-2 bg-neutral-600 rounded-full"></div>
+                            <span class="text-neutral-500">Sentiment</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div id="step-4" class="w-2 h-2 bg-neutral-600 rounded-full"></div>
+                            <span class="text-neutral-500">Train</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div id="step-5" class="w-2 h-2 bg-neutral-600 rounded-full"></div>
+                            <span class="text-neutral-500">Predict</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div id="step-6" class="w-2 h-2 bg-neutral-600 rounded-full"></div>
+                            <span class="text-neutral-500">Visualize</span>
+                        </div>
+                        <div class="flex items-center space-x-1">
+                            <div id="step-7" class="w-2 h-2 bg-neutral-600 rounded-full"></div>
+                            <span class="text-neutral-500">Finalize</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-neutral-950/80 backdrop-blur-sm border-t border-neutral-800/50 text-neutral-400 text-xs p-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                <div>
+                    <h4 class="font-semibold text-white mb-2">Disclaimer</h4>
+                    <p>These predictions are based on historical data and machine learning models. Past performance is not indicative of future results. For educational purposes only.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-2">Technology</h4>
+                    <p>Powered by advanced LSTM neural networks, sentiment analysis, and real-time market data from trusted financial APIs.</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-white mb-2">Support</h4>
+                    <p>Always consult with qualified financial advisors before making investment decisions. This is not financial advice.</p>
+                </div>
+            </div>
+            <div class="border-t border-neutral-800 pt-4 text-center">
+                <p>&copy; 2025 Stock AI Pro | Advanced Machine Learning for Stock Analysis</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

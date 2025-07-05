@@ -1,0 +1,9 @@
+include README.md
+include LICENSE
+include requirements.txt
+recursive-include stock_prediction_lstm *.py
+recursive-include stock_prediction_lstm/data_cache *
+recursive-exclude stock_prediction_lstm/__pycache__ *
+recursive-exclude stock_prediction_lstm/*/__pycache__ *
+recursive-exclude . *.pyc
+recursive-exclude . *.pyo

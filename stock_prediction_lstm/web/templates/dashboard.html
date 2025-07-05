@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ ticker_symbol }} Analysis - Stock AI Pro</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Inter & Montserrat -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .font-inter { font-family: 'Inter', sans-serif; }
+        .font-montserrat { font-family: 'Montserrat', sans-serif; }
+        
+        /* Custom scrollbar for dark theme */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #262626;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #525252;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #737373;
+        }
+        
+        /* Premium gradient button */
+        .btn-gradient {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            box-shadow: 0 10px 25px rgba(6, 182, 212, 0.3);
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #0891b2 0%, #2563eb 100%);
+            box-shadow: 0 15px 35px rgba(6, 182, 212, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        /* Metric card hover effects */
+        .metric-card {
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        /* Tab styling */
+        .tab-button {
+            color: #a3a3a3;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .tab-button:hover {
+            color: #06b6d4;
+            border-bottom-color: #06b6d4;
+        }
+        .tab-button.active-tab {
+            color: #06b6d4;
+            border-bottom-color: #06b6d4;
+        }
+        
+        /* Premium animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.6s ease-out;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen font-inter bg-neutral-950 text-neutral-200">
+
+    <!-- Global Header -->
+    <header class="bg-neutral-900 shadow-xl p-4 flex justify-between items-center sticky top-0 z-20 border-b border-neutral-800">
+        <div class="flex items-center">
+            <svg class="w-10 h-10 text-cyan-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8L11 2m7 12v3m-3 3h6m-3-6v6"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <h1 class="text-3xl font-extrabold text-white tracking-wide font-montserrat">Stock AI Pro</h1>
+        </div>
+        <div class="text-sm">
+            <span class="text-neutral-400">Market Status:</span>
+            <span class="font-medium {% if market_state == 'open' %}text-emerald-400{% else %}text-rose-400{% endif %}">
+                {{ market_state|title }}
+            </span>
+        </div>
+        <a href="{{ url_for('index') }}" class="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-200">
+            ← New Analysis
+        </a>
+    </header>
+
+    <main class="flex flex-1 flex-col md:flex-row">
+        <!-- Analysis Parameters Sidebar -->
+        <aside class="w-full md:w-80 bg-neutral-900 p-6 shadow-2xl md:shadow-none md:border-r border-neutral-800 flex-shrink-0 z-10">
+            <h2 class="text-xl font-semibold mb-6 text-white font-montserrat">Analysis Summary</h2>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-sm font-medium text-neutral-300">Stock Analyzed</label>
+                    <p class="text-lg font-bold text-cyan-400">{{ ticker_symbol }}</p>
+                    {% if company_name %}
+                    <p class="text-sm text-neutral-400">{{ company_name }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label class="text-sm font-medium text-neutral-300">Time Period</label>
+                    <p class="text-white">{{ period }}</p>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-medium text-neutral-300">Data Interval</label>
+                    <p class="text-white">{{ interval }}</p>
+                </div>
+                
+                <div>
+                    <label class="text-sm font-medium text-neutral-300">Prediction Days</label>
+                    <p class="text-white">{{ prediction_days }} days</p>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <a href="{{ url_for('index') }}" class="w-full btn-gradient text-white py-3 px-4 rounded-lg text-center font-semibold focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-neutral-900 shadow-lg block">
+                    Run New Analysis
+                </a>
+            </div>
+
+            {% if company_info %}
+            <div class="mt-8">
+                <div class="rounded-md bg-neutral-800 p-4 border border-neutral-700">
+                    <button class="flex justify-between items-center w-full text-left text-neutral-300 font-medium" onclick="toggleAccordion('company-info')">
+                        Company Information
+                        <svg class="w-5 h-5 transform transition-transform duration-200 text-neutral-400" id="company-info-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div id="company-info-content" class="mt-3 text-sm text-neutral-400 hidden">
+                        {% if company_info.longName %}
+                        <p><strong>{{ company_info.longName }}</strong></p>
+                        {% endif %}
+                        {% if company_info.sector %}
+                        <p>Sector: {{ company_info.sector }}</p>
+                        {% endif %}
+                        {% if company_info.industry %}
+                        <p>Industry: {{ company_info.industry }}</p>
+                        {% endif %}
+                        {% if company_info.website %}
+                        <p><a href="{{ company_info.website }}" target="_blank" class="text-cyan-400 hover:underline">Company Website</a></p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </aside>
+
+        <!-- Main Content Area: Analysis Results -->
+        <section class="flex-1 p-6 md:p-8 overflow-y-auto">
+            <div class="space-y-8 fade-in-up">
+                <!-- Section A: The "Snapshot" Overview -->
+                <div class="bg-neutral-800 rounded-xl shadow-2xl border border-neutral-700 p-6">
+                    <h2 class="text-3xl font-bold text-white mb-6 font-montserrat">{{ ticker_symbol }} Analysis Snapshot</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        
+                        <!-- Current Price -->
+                        {% if current_price %}
+                        <div class="metric-card text-white p-6 bg-gradient-to-br from-cyan-700 to-blue-800">
+                            <p class="text-sm font-medium text-cyan-200">Current Price</p>
+                            <p class="text-4xl font-bold mt-2">
+                                ${{ "%.2f"|format(current_price) }}
+                                {% if price_change %}
+                                <span class="{% if price_change >= 0 %}text-emerald-400{% else %}text-rose-400{% endif %} text-2xl font-semibold ml-2">
+                                    {% if price_change >= 0 %}↑{% else %}↓{% endif %}{{ "%.2f"|format(price_change|abs) }}%
+                                </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Predicted Return -->
+                        {% if predicted_return %}
+                        <div class="metric-card text-white p-6 {% if predicted_return >= 0 %}bg-gradient-to-br from-emerald-600 to-emerald-800{% else %}bg-gradient-to-br from-rose-600 to-rose-800{% endif %}">
+                            <p class="text-sm font-medium {% if predicted_return >= 0 %}text-emerald-200{% else %}text-rose-200{% endif %}">Predicted {{ prediction_days }}-Day Return</p>
+                            <p class="text-5xl font-bold mt-2">
+                                {% if predicted_return >= 0 %}+{% endif %}{{ "%.2f"|format(predicted_return) }}%
+                                {% if predicted_return >= 0 %}
+                                <svg class="inline-block w-10 h-10 ml-2 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                                </svg>
+                                {% else %}
+                                <svg class="inline-block w-10 h-10 ml-2 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V6"></path>
+                                </svg>
+                                {% endif %}
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Analysis Conclusion -->
+                        {% if analysis_conclusion %}
+                        <div class="metric-card text-white p-6 {% if predicted_return >= 0 %}bg-gradient-to-br from-emerald-600 to-emerald-800{% else %}bg-gradient-to-br from-rose-600 to-rose-800{% endif %}">
+                            <p class="text-sm font-medium {% if predicted_return >= 0 %}text-emerald-200{% else %}text-rose-200{% endif %}">Analysis Conclusion</p>
+                            <p class="text-2xl font-bold mt-2">
+                                {{ analysis_conclusion }}
+                                <span class="inline-block ml-2 text-neutral-300 cursor-pointer" title="Based on technical indicators, sentiment analysis, and model predictions">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </span>
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Volatility Assessment -->
+                        {% if volatility %}
+                        <div class="metric-card text-white p-6 bg-gradient-to-br from-sky-600 to-sky-800">
+                            <p class="text-sm font-medium text-sky-200">Volatility Assessment</p>
+                            <p class="text-2xl font-bold mt-2">{{ volatility.level }} Risk <span class="text-lg font-normal">({{ "%.2f"|format(volatility.value) }}%)</span></p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Model Performance -->
+                        {% if model_performance and model_performance.r2_score %}
+                        <div class="metric-card text-white p-6 bg-gradient-to-br from-violet-600 to-violet-800">
+                            <p class="text-sm font-medium text-violet-200">Model R² Score</p>
+                            <p class="text-2xl font-bold mt-2">{{ "%.4f"|format(model_performance.r2_score) }} <span class="text-lg font-normal">({% if model_performance.r2_score > 0.8 %}High{% elif model_performance.r2_score > 0.6 %}Medium{% else %}Low{% endif %} Confidence)</span></p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Sentiment Score -->
+                        {% if sentiment_score %}
+                        <div class="metric-card text-white p-6 {% if sentiment_score >= 0.5 %}bg-gradient-to-br from-emerald-600 to-emerald-800{% elif sentiment_score >= 0.3 %}bg-gradient-to-br from-yellow-600 to-yellow-800{% else %}bg-gradient-to-br from-rose-600 to-rose-800{% endif %}">
+                            <p class="text-sm font-medium {% if sentiment_score >= 0.5 %}text-emerald-200{% elif sentiment_score >= 0.3 %}text-yellow-200{% else %}text-rose-200{% endif %}">Market Sentiment</p>
+                            <p class="text-2xl font-bold mt-2">
+                                {% if sentiment_score >= 0.7 %}Very Positive
+                                {% elif sentiment_score >= 0.5 %}Positive
+                                {% elif sentiment_score >= 0.3 %}Neutral
+                                {% elif sentiment_score >= 0.1 %}Negative
+                                {% else %}Very Negative{% endif %}
+                                <span class="text-lg font-normal">({{ "%.2f"|format(sentiment_score) }})</span>
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Section B: Interactive Chart Gallery -->
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-4">Price & Trend Visualizations</h2>
+                    <div class="flex border-b border-gray-200 mb-4 overflow-x-auto">
+                        {% if charts %}
+                        {% for chart_name, chart_data in charts.items() %}
+                        <button class="tab-button py-2 px-4 text-sm font-medium text-gray-600 hover:text-indigo-600 border-b-2 border-transparent hover:border-indigo-500 focus:outline-none whitespace-nowrap {% if loop.first %}active-tab{% endif %}" 
+                                data-tab="{{ chart_name }}">
+                            {{ chart_data.title or chart_name|title }}
+                        </button>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+
+                    {% if charts %}
+                    {% for chart_name, chart_data in charts.items() %}
+                    <div id="{{ chart_name }}" class="tab-content {% if not loop.first %}hidden{% endif %}">
+                        {% if chart_data.html %}
+                        <div class="w-full">
+                            {{ chart_data.html|safe }}
+                        </div>
+                        {% elif chart_data.url %}
+                        <iframe src="{{ chart_data.url }}" class="w-full h-96 rounded-md border"></iframe>
+                        {% else %}
+                        <div class="w-full h-96 bg-gray-100 rounded-md flex items-center justify-center">
+                            <p class="text-gray-500">Chart not available</p>
+                        </div>
+                        {% endif %}
+                        {% if chart_data.description %}
+                        <p class="text-sm text-gray-500 mt-2">{{ chart_data.description }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                </div>
+
+                <!-- Section C: Detailed Insights -->
+                <div class="bg-white p-6 rounded-lg shadow-md border border-gray-200">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-4">Detailed Insights</h2>
+
+                    <!-- Daily Price Forecast Table -->
+                    {% if future_predictions %}
+                    <div class="mb-8">
+                        <h3 class="text-xl font-medium text-gray-800 mb-3">Daily Price Forecast</h3>
+                        <div class="overflow-x-auto rounded-lg border border-gray-200">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Predicted Price</th>
+                                        <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    {% for day, prediction in future_predictions.items() %}
+                                    <tr>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ loop.index }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ prediction.date }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${{ "%.2f"|format(prediction.price) }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm {% if prediction.change >= 0 %}text-green-500{% else %}text-red-500{% endif %}">
+                                            {% if prediction.change >= 0 %}+{% endif %}{{ "%.2f"|format(prediction.change) }}%
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Model Performance Metrics -->
+                    {% if model_performance %}
+                    <div class="mb-8">
+                        <h3 class="text-xl font-medium text-gray-800 mb-3">Model Performance</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {% if model_performance.rmse %}
+                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-700 font-medium">RMSE</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">{{ "%.4f"|format(model_performance.rmse) }}</p>
+                                <p class="text-xs text-gray-500">Root Mean Squared Error (Lower is better)</p>
+                            </div>
+                            {% endif %}
+                            {% if model_performance.mae %}
+                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-700 font-medium">MAE</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">{{ "%.4f"|format(model_performance.mae) }}</p>
+                                <p class="text-xs text-gray-500">Mean Absolute Error (Lower is better)</p>
+                            </div>
+                            {% endif %}
+                            {% if model_performance.r2_score %}
+                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-700 font-medium">R²</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">{{ "%.4f"|format(model_performance.r2_score) }}</p>
+                                <p class="text-xs text-gray-500">R-squared (Higher is better)</p>
+                            </div>
+                            {% endif %}
+                            {% if model_performance.mape %}
+                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-700 font-medium">MAPE</p>
+                                <p class="text-2xl font-bold text-gray-900 mt-1">{{ "%.2f"|format(model_performance.mape) }}%</p>
+                                <p class="text-xs text-gray-500">Mean Absolute % Error (Lower is better)</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Technical Indicators Summary -->
+                    {% if technical_indicators %}
+                    <div class="mb-8">
+                        <h3 class="text-xl font-medium text-gray-800 mb-3">Technical Indicators Summary</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {% for indicator, value in technical_indicators.items() %}
+                            <div class="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-sm text-gray-700 font-medium">{{ indicator|upper }}</p>
+                                <p class="text-lg font-bold text-gray-900 mt-1">{{ value }}</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Understanding the Metrics -->
+                    <div class="rounded-md bg-gray-50 p-4">
+                        <button class="flex justify-between items-center w-full text-left text-gray-700 font-medium" onclick="toggleAccordion('understanding-metrics')">
+                            Understanding the Metrics
+                            <svg class="w-5 h-5 transform transition-transform duration-200" id="understanding-metrics-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </button>
+                        <div id="understanding-metrics-content" class="mt-3 text-sm text-gray-600 hidden">
+                            <p><strong>RMSE (Root Mean Squared Error):</strong> Measures the average magnitude of the errors. Lower is better.</p>
+                            <p><strong>MAE (Mean Absolute Error):</strong> Measures the average magnitude of the errors without considering their direction. Lower is better.</p>
+                            <p><strong>R² (R-squared):</strong> Represents the proportion of the variance in the dependent variable that is predictable from the independent variables. Higher is better.</p>
+                            <p><strong>MAPE (Mean Absolute Percentage Error):</strong> Expresses accuracy as a percentage of the error. Lower is better.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 text-xs p-4 text-center">
+        <p>Disclaimer: These predictions are based on historical data and machine learning models, which have inherent limitations. Past performance is not indicative of future results. This information is for educational purposes only and should not be considered financial advice. Always consult with a qualified financial advisor before making investment decisions.</p>
+        <p class="mt-2">&copy; 2025 Stock AI Assistant | Powered by Machine Learning and Sentiment Analysis | Data sourced from Yahoo Finance</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Tab functionality for charts
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    // Remove active class from all buttons and hide all content
+                    tabButtons.forEach(btn => btn.classList.remove('active-tab', 'border-indigo-500', 'text-indigo-600'));
+                    tabButtons.forEach(btn => btn.classList.add('border-transparent', 'text-gray-600'));
+                    tabContents.forEach(content => content.classList.add('hidden'));
+
+                    // Add active class to clicked button and show corresponding content
+                    button.classList.add('active-tab', 'border-indigo-500', 'text-indigo-600');
+                    button.classList.remove('border-transparent', 'text-gray-600');
+                    document.getElementById(button.dataset.tab).classList.remove('hidden');
+                });
+            });
+        });
+
+        // Accordion toggle function
+        function toggleAccordion(id) {
+            const content = document.getElementById(id + '-content');
+            const arrow = document.getElementById(id + '-arrow');
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                arrow.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                arrow.classList.remove('rotate-180');
+            }
+        }
+    </script>
+</body>
+</html>

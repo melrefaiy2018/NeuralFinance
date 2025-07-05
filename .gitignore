@@ -1,0 +1,5 @@
+stock_prediction_lstm/__pycache__
+*.pyc
+.DS_Store
+stock_prediction_lstm.egg-info
+stock_prediction_lstm/web/sentiment_cache
