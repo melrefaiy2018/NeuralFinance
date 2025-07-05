@@ -143,13 +143,7 @@ from stock_prediction_lstm import StockAnalyzer
 import pandas as pd
 
 # Initialize the analyzer
-analyzer = StockAnalyzer(
-    lstm_units=128,
-    dropout_rate=0.2,
-    epochs=100,
-    batch_size=32,
-    sequence_length=60
-)
+analyzer = StockAnalyzer()
 
 # Run comprehensive analysis
 model, data, future_prices, future_dates = analyzer.run_analysis_for_stock(
