@@ -241,15 +241,140 @@ The `examples/` directory contains various usage examples:
 
 ## Testing
 
-Run the test suite:
+The package includes a comprehensive test suite covering normal use cases, edge cases, and integration scenarios.
 
+### Running Tests
+
+#### Quick Start
 ```bash
+# Install test dependencies
+pip install pytest pytest-cov pytest-mock
+
 # Run all tests
-pytest
+python run_tests.py --all
+
+# Run specific test types
+python run_tests.py --unit          # Unit tests only
+python run_tests.py --integration   # Integration tests only
+python run_tests.py --quick         # Quick tests (exclude slow ones)
+```
+
+#### Detailed Test Commands
+```bash
+# Run tests with coverage report
+python run_tests.py --coverage
+
+# Run tests in parallel (faster)
+python run_tests.py --parallel
 
 # Run specific test file
-pytest tests/test_analysis.py
+python run_tests.py --file tests/unit/data/fetchers/test_stock_data.py
+
+# Check test environment
+python run_tests.py --check-env
 ```
+
+#### Manual pytest Commands
+```bash
+# Run all tests
+pytest tests/
+
+# Run with coverage
+pytest tests/ --cov=stock_prediction_lstm --cov-report=html
+
+# Run specific test categories
+pytest tests/unit/                    # Unit tests
+pytest tests/integration/             # Integration tests
+pytest -m "not slow"                  # Skip slow tests
+pytest -k "test_fetch_data"          # Run tests matching pattern
+```
+
+### Test Structure
+
+The test suite is organized as follows:
+
+```
+tests/
+├── conftest.py                      # Test configuration and fixtures
+├── pytest.ini                      # Pytest configuration
+├── test_data/                       # Sample test data
+│   ├── sample_stock_data.csv
+│   └── sample_sentiment_data.json
+├── unit/                            # Unit tests
+│   ├── data/
+│   │   ├── fetchers/               # Data fetching tests
+│   │   ├── processors/             # Data processing tests
+│   │   └── storage/                # Data storage tests
+│   ├── models/                     # Model tests
+│   ├── analysis/                   # Analysis pipeline tests
+│   └── visualization/              # Plotting tests
+└── integration/                     # End-to-end tests
+    └── test_end_to_end.py
+```
+
+### Test Coverage
+
+The test suite aims for:
+- **90%+ overall code coverage**
+- **95%+ coverage for critical modules** (data fetchers, models, analysis)
+- **Comprehensive edge case testing**
+- **Integration testing for complete workflows**
+
+### Writing New Tests
+
+When adding new features, include tests that cover:
+
+1. **Normal Use Cases**
+   ```python
+   def test_feature_normal_operation():
+       # Test typical usage scenarios
+       pass
+   ```
+
+2. **Edge Cases**
+   ```python
+   def test_feature_with_invalid_input():
+       # Test error handling and boundary conditions
+       pass
+   ```
+
+3. **Integration**
+   ```python
+   def test_feature_integration_with_other_components():
+       # Test how feature works with other parts
+       pass
+   ```
+
+### Test Fixtures and Mocking
+
+Common test fixtures are available in `conftest.py`:
+- `sample_stock_data` - Realistic stock price data
+- `sample_sentiment_data` - Sample sentiment analysis data
+- `mock_api_responses` - Mocked external API responses
+- `temp_output_dir` - Temporary directory for test outputs
+
+Example usage:
+```python
+def test_my_feature(sample_stock_data, mock_api_responses):
+    # Use fixtures in your tests
+    result = my_function(sample_stock_data)
+    assert result is not None
+```
+
+### Continuous Integration
+
+Tests are automatically run on:
+- **GitHub Actions** for pull requests and commits
+- **Multiple Python versions** (3.8, 3.9, 3.10, 3.11)
+- **Different operating systems** (Ubuntu, macOS, Windows)
+
+### Test Performance
+
+- **Unit tests**: Should complete in < 30 seconds
+- **Integration tests**: Should complete in < 2 minutes  
+- **Full test suite**: Should complete in < 5 minutes
+
+For detailed testing instructions and guidelines, see [agent.md](agent.md).
 
 ## Performance Considerations
 
