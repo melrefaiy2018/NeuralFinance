@@ -17,7 +17,6 @@ import json
 import traceback
 from plotly.subplots import make_subplots
 import plotly.io as pio
-import plotly.io as pio
 import uuid
 from werkzeug.utils import secure_filename
 from stock_prediction_lstm.core.utils import create_output_directory
@@ -33,7 +32,16 @@ tf.config.experimental.enable_op_determinism()
 
 # Define fallback evaluation function first
 def emergency_evaluate_with_diagnostics(y_true, y_pred):
-    """Fallback evaluation function if emergency fixes are not available"""
+    """
+    Fallback evaluation function if emergency fixes are not available.
+
+    Args:
+        y_true: The true values.
+        y_pred: The predicted values.
+
+    Returns:
+        dict: A dictionary of evaluation metrics.
+    """
     from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
     import numpy as np
     return {
@@ -77,7 +85,12 @@ os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
 
 # Helper functions
 def get_market_state():
-    """Return the current market state (open/closed)"""
+    """
+    Return the current market state (open/closed).
+
+    Returns:
+        tuple: A tuple containing the market state and a message.
+    """
     now = datetime.now()
     # US Market hours are 9:30 AM to 4:00 PM Eastern Time
     # This is a simplified check
@@ -90,7 +103,17 @@ def get_market_state():
         return "closed", "The US stock market is closed for the weekend."
 
 def create_candlestick_chart(stock_df, ticker_symbol, output_path=None):
-    """Create a candlestick chart and return the HTML or save to file"""
+    """
+    Create a candlestick chart and return the HTML or save to file.
+
+    Args:
+        stock_df (pd.DataFrame): The DataFrame containing the stock data.
+        ticker_symbol (str): The stock ticker symbol.
+        output_path (str, optional): The path to save the chart. Defaults to None.
+
+    Returns:
+        str: The HTML of the chart, or the path to the saved file.
+    """
     fig = go.Figure()
     fig.add_trace(go.Candlestick(
         x=stock_df['date'],
@@ -117,7 +140,17 @@ def create_candlestick_chart(stock_df, ticker_symbol, output_path=None):
         return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
 
 def create_price_trends_chart(stock_df, ticker_symbol, output_path=None):
-    """Create a price trends chart with moving averages"""
+    """
+    Create a price trends chart with moving averages.
+
+    Args:
+        stock_df (pd.DataFrame): The DataFrame containing the stock data.
+        ticker_symbol (str): The stock ticker symbol.
+        output_path (str, optional): The path to save the chart. Defaults to None.
+
+    Returns:
+        str: The HTML of the chart, or the path to the saved file.
+    """
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=stock_df['date'],
@@ -164,7 +197,17 @@ def create_price_trends_chart(stock_df, ticker_symbol, output_path=None):
         return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
 
 def create_volume_chart(stock_df, ticker_symbol, output_path=None):
-    """Create a volume chart"""
+    """
+    Create a volume chart.
+
+    Args:
+        stock_df (pd.DataFrame): The DataFrame containing the stock data.
+        ticker_symbol (str): The stock ticker symbol.
+        output_path (str, optional): The path to save the chart. Defaults to None.
+
+    Returns:
+        str: The HTML of the chart, or the path to the saved file.
+    """
     fig = go.Figure()
     # Color the volume bars based on price change
     colors = ['green' if close >= open else 'red' for close, open in zip(stock_df['close'], stock_df['open'])]
@@ -200,7 +243,16 @@ def create_volume_chart(stock_df, ticker_symbol, output_path=None):
         return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
 
 def create_technical_indicators_chart(combined_df, output_path=None):
-    """Create technical indicators chart with RSI, MACD, etc."""
+    """
+    Create technical indicators chart with RSI, MACD, etc.
+
+    Args:
+        combined_df (pd.DataFrame): The DataFrame containing the combined data.
+        output_path (str, optional): The path to save the chart. Defaults to None.
+
+    Returns:
+        str: The HTML of the chart, or the path to the saved file.
+    """
     fig = make_subplots(rows=3, cols=1, 
                       shared_xaxes=True, 
                       vertical_spacing=0.05,
@@ -329,7 +381,20 @@ def create_technical_indicators_chart(combined_df, output_path=None):
         return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
 
 def create_future_predictions_chart(hist_dates, hist_prices, future_dates, future_prices, ticker_symbol, output_path=None):
-    """Create future predictions chart"""
+    """
+    Create future predictions chart.
+
+    Args:
+        hist_dates: The historical dates.
+        hist_prices: The historical prices.
+        future_dates: The future dates.
+        future_prices: The future prices.
+        ticker_symbol (str): The stock ticker symbol.
+        output_path (str, optional): The path to save the chart. Defaults to None.
+
+    Returns:
+        str: The HTML of the chart, or the path to the saved file.
+    """
     fig = go.Figure()
     
     # Add historical prices
@@ -407,7 +472,17 @@ def create_future_predictions_chart(hist_dates, hist_prices, future_dates, futur
         return pio.to_html(fig, full_html=False, include_plotlyjs='cdn')
 
 def create_correlation_matrix_chart(combined_df, ticker_symbol, output_path=None):
-    """Create an optimized correlation matrix heatmap for various features"""
+    """
+    Create an optimized correlation matrix heatmap for various features.
+
+    Args:
+        combined_df (pd.DataFrame): The DataFrame containing the combined data.
+        ticker_symbol (str): The stock ticker symbol.
+        output_path (str, optional): The path to save the chart. Defaults to None.
+
+    Returns:
+        str: The HTML of the chart, or the path to the saved file.
+    """
     
     # Define core features we always want to include
     core_features = ['close', 'volume']
@@ -669,7 +744,7 @@ def analysis():
         # Get company info
         try:
             stock_info = yf.Ticker(ticker_symbol).info
-        except:
+        except Exception:
             stock_info = {'longName': ticker_symbol}
         
         # Create charts (return HTML directly instead of saving to files)
@@ -902,7 +977,7 @@ def analysis():
             risk_color = "red"
             
         # Show prediction confidence
-        r2_score = metrics['r2']
+        r2_score = metrics.get('r2', 0.0)
         if r2_score > 0.7:
             confidence = "High"
             conf_color = "green"
@@ -940,132 +1015,10 @@ def analysis():
             sentiment_icon = "📉"
             sentiment_color = "#D32F2F"
         
-        # Create a dictionary to hold all data for the dashboard
-        dashboard_data = {
-            'ticker': ticker_symbol,
-            'last_price': current_price,
-            'price_change': current_price - prev_price,
-            'price_change_pct': price_change,
-            'predictions': future_prices,
-            'prediction_dates': [date.strftime('%Y-%m-%d') for date in future_dates],
-            'predicted_return': overall_return,
-            'using_synthetic_data': using_synthetic_data,
-            'dashboard_data': {
-                'price_prediction': {
-                    'data': [
-                        {
-                            'x': [d.strftime('%Y-%m-%d') for d in hist_dates],
-                            'y': hist_prices.tolist(),
-                            'type': 'scatter',
-                            'mode': 'lines',
-                            'name': 'Historical',
-                            'line': {'color': 'blue', 'width': 2}
-                        },
-                        {
-                            'x': [d.strftime('%Y-%m-%d') for d in future_dates],
-                            'y': future_prices,
-                            'type': 'scatter',
-                            'mode': 'lines+markers',
-                            'name': 'Predicted',
-                            'line': {'color': 'red', 'width': 2, 'dash': 'dash'}
-                        }
-                    ],
-                    'layout': {
-                        'title': f"{ticker_symbol} Price Prediction",
-                        'xaxis': {'title': 'Date'},
-                        'yaxis': {'title': 'Price ($)'},
-                        'height': 500,
-                        'template': 'plotly_white'
-                    }
-                },
-                'sentiment_analysis': {
-                    'data': [
-                        {
-                            'x': combined_df['date'].dt.strftime('%Y-%m-%d').tolist()[-30:],
-                            'y': combined_df['close'].tolist()[-30:],
-                            'type': 'scatter',
-                            'mode': 'lines',
-                            'name': 'Price',
-                            'yaxis': 'y'
-                        },
-                        {
-                            'x': combined_df['date'].dt.strftime('%Y-%m-%d').tolist()[-30:],
-                            'y': (combined_df['sentiment_positive'] * 100).tolist()[-30:],
-                            'type': 'scatter',
-                            'mode': 'lines',
-                            'name': 'Positive Sentiment',
-                            'yaxis': 'y2'
-                        }
-                    ],
-                    'layout': {
-                        'title': 'Price vs Sentiment',
-                        'xaxis': {'title': 'Date'},
-                        'yaxis': {'title': 'Price ($)', 'side': 'left'},
-                        'yaxis2': {
-                            'title': 'Sentiment %',
-                            'overlaying': 'y',
-                            'side': 'right',
-                            'range': [0, 100]
-                        },
-                        'height': 500,
-                        'template': 'plotly_white'
-                    }
-                },
-                'feature_importance': {
-                    'data': [
-                        {
-                            'x': [0.8, 0.7, 0.6, 0.5, 0.4],
-                            'y': ['Price', 'Volume', 'RSI', 'MACD', 'Sentiment'],
-                            'type': 'bar',
-                            'orientation': 'h',
-                            'marker': {'color': 'rgba(58, 71, 80, 0.6)'}
-                        }
-                    ],
-                    'layout': {
-                        'title': 'Feature Importance',
-                        'xaxis': {'title': 'Importance Score'},
-                        'height': 500,
-                        'template': 'plotly_white'
-                    }
-                },
-                'technical_indicators': {
-                    'data': [
-                        {
-                            'x': combined_df['date'].dt.strftime('%Y-%m-%d').tolist()[-60:],
-                            'y': combined_df['close'].tolist()[-60:],
-                            'type': 'scatter',
-                            'mode': 'lines',
-                            'name': 'Price'
-                        },
-                        {
-                            'x': combined_df['date'].dt.strftime('%Y-%m-%d').tolist()[-60:],
-                            'y': combined_df['rsi14'].tolist()[-60:] if 'rsi14' in combined_df.columns else [],
-                            'type': 'scatter',
-                            'mode': 'lines',
-                            'name': 'RSI',
-                            'yaxis': 'y2'
-                        }
-                    ],
-                    'layout': {
-                        'title': 'Technical Indicators',
-                        'xaxis': {'title': 'Date'},
-                        'yaxis': {'title': 'Price ($)'},
-                        'yaxis2': {
-                            'title': 'Indicator Value',
-                            'overlaying': 'y',
-                            'side': 'right'
-                        },
-                        'height': 800,
-                        'template': 'plotly_white'
-                    }
-                }
-            }
-        }
-        
         # Get market state
         market_state, market_message = get_market_state()
         
-        # Prepare data for the new template structure
+        # Prepare data for the template structure
         template_data = {
             'ticker_symbol': ticker_symbol.upper(),
             'company_name': stock_info.get('longName', ticker_symbol),
@@ -1082,9 +1035,9 @@ def analysis():
                 'value': volatility
             },
             'model_performance': {
-                'r2_score': metrics['r2'],
-                'rmse': metrics['rmse'],
-                'mae': metrics['mae'],
+                'r2_score': metrics.get('r2', 0.0),
+                'rmse': metrics.get('rmse', 0.0),
+                'mae': metrics.get('mae', 0.0),
                 'mape': metrics.get('mape', 0.0)
             },
             'sentiment_score': avg_pos / 100.0,
