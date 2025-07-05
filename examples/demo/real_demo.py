@@ -20,7 +20,7 @@ import numpy as np
 
 try:
     from stock_prediction_lstm.analysis import StockAnalyzer
-    from stock_prediction_lstm.models import StockSentimentModel
+    from stock_prediction_lstm.models.improved_model import ImprovedStockModel
 
     print("✅ Successfully imported stock_prediction_lstm package")
 except ImportError as e:
@@ -100,16 +100,28 @@ class DemoDataGenerator:
             # Prepare data for evaluation
             X_market, X_sentiment, y = self.model.prepare_data(self.combined_df, target_col="close")
 
+            print(f"Total samples for evaluation: {len(X_market)}")
+
             # Use last 20% for testing
             split_idx = int(0.8 * len(X_market))
             X_market_test = X_market[split_idx:]
             X_sentiment_test = X_sentiment[split_idx:]
             y_test = y[split_idx:]
 
+            print(f"Test samples: {len(X_market_test)}")
+
+            if len(X_market_test) < 5:
+                print("Warning: Very few test samples available")
+
             # Make predictions on test set
+            print("Making predictions on test set...")
             y_pred = self.model.predict(X_market_test, X_sentiment_test)
 
+            print(f"Predictions shape: {y_pred.shape}")
+            print(f"True values shape: {y_test.shape}")
+
             # Calculate real metrics
+            print("Calculating metrics...")
             metrics = self.model.evaluate(y_test, y_pred)
 
             print(f"✅ Real Model Metrics:")
@@ -117,12 +129,15 @@ class DemoDataGenerator:
             print(f"   MAE:  ${metrics['mae']:.2f}")
             print(f"   R²:   {metrics['r2']:.3f} ({metrics['r2']*100:.1f}%)")
             print(f"   MAPE: {metrics['mape']:.2f}%")
+            print(f"   MSE:  ${metrics.get('mse', 0):.2f}")
 
             self.metrics = metrics
             return True
 
         except Exception as e:
             print(f"❌ Evaluation failed: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def generate_historical_context(self, days_back: int = 10):
@@ -214,7 +229,7 @@ class DemoDataGenerator:
                     "ticker": self.ticker,
                     "period": self.period,
                     "generation_time": datetime.now().isoformat(),
-                    "model_type": "StockSentimentModel with Multi-Head Attention",
+                    "model_type": "ImprovedStockModel with LSTM and Multi-Head Attention",
                     "data_source": "Real predictions from trained LSTM model",
                 },
                 "current_state": {
@@ -230,16 +245,16 @@ class DemoDataGenerator:
                     "prices": [float(p) for p in self.future_prices],
                     "dates": future_dates_str,
                     "confidence_level": (
-                        float(self.metrics["r2"]) if hasattr(self, "metrics") else 0.85
+                        max(0.0, min(1.0, float(self.metrics["r2"]))) if hasattr(self, "metrics") and self.metrics["r2"] > -1.0 else 0.15
                     ),
                 },
                 "model_metrics": {
                     "rmse": float(self.metrics["rmse"]),
                     "mae": float(self.metrics["mae"]),
                     "r2_score": float(self.metrics["r2"]),
-                    "r2_percentage": float(self.metrics["r2"] * 100),
-                    "mape": float(self.metrics["mape"]),
-                    "mse": float(self.metrics["mse"]),
+                    "r2_percentage": float(max(-100, min(100, self.metrics["r2"] * 100))),  # Cap between -100% and 100%
+                    "mape": float(min(1000, self.metrics["mape"])),  # Cap at 1000%
+                    "mse": float(self.metrics.get("mse", self.metrics["rmse"] ** 2)),
                 },
                 "feature_info": self.feature_stats,
                 "chart_config": {
@@ -263,22 +278,34 @@ class DemoDataGenerator:
             return False
 
     def save_demo_data(self, output_path: str = None):
-        """Save the demo data to JSON file"""
+        """Save the demo data to JSON file in calculations directory"""
+        
+        # Create calculations directory at the same level as the script
+        script_dir = Path(__file__).parent
+        calculations_dir = script_dir / "calculations"
+        calculations_dir.mkdir(exist_ok=True)
+        
         if output_path is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            output_path = f"demo_data_{self.ticker}_{timestamp}.json"
+            output_filename = f"demo_data_{self.ticker}_{timestamp}.json"
+            output_path = calculations_dir / output_filename
+        else:
+            # If user provided a path, still save it in calculations dir
+            output_filename = Path(output_path).name
+            output_path = calculations_dir / output_filename
 
         print(f"\n💾 Saving demo data to: {output_path}")
+        print(f"📁 Calculations directory: {calculations_dir}")
 
         try:
             with open(output_path, "w") as f:
                 json.dump(self.demo_data, f, indent=2, default=str)
 
             print(f"✅ Demo data saved successfully")
-            print(f"   File size: {os.path.getsize(output_path)} bytes")
+            print(f"   File size: {output_path.stat().st_size} bytes")
 
             # Also save a JavaScript-ready version
-            js_output_path = output_path.replace(".json", "_js.js")
+            js_output_path = output_path.with_suffix("").with_name(output_path.stem + "_js.js")
             with open(js_output_path, "w") as f:
                 f.write(f"// Real demo data generated from Stock Prediction LSTM model\n")
                 f.write(f"// Generated: {datetime.now().isoformat()}\n")
@@ -290,7 +317,7 @@ class DemoDataGenerator:
 
             print(f"✅ JavaScript version saved: {js_output_path}")
 
-            return output_path
+            return str(output_path)
 
         except Exception as e:
             print(f"❌ Failed to save demo data: {str(e)}")
@@ -298,31 +325,42 @@ class DemoDataGenerator:
 
     def generate_usage_instructions(self, output_path: str):
         """Generate instructions for using the demo data"""
-        instructions_path = output_path.replace(".json", "_instructions.md")
+        output_path = Path(output_path)
+        instructions_path = output_path.with_suffix("").with_name(output_path.stem + "_instructions.md")
+        
+        # Get relative paths for instructions
+        js_filename = output_path.stem + "_js.js"
+        json_filename = output_path.name
 
         instructions = f"""# Real Demo Data Usage Instructions
 
 ## Generated Data
-- **File**: `{output_path}`
+- **File**: `{json_filename}`
 - **Ticker**: {self.ticker}
 - **Period**: {self.period}
 - **Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+- **Location**: `calculations/` directory
 
 ## Model Performance
 - **RMSE**: ${self.demo_data['model_metrics']['rmse']:.2f}
 - **R² Score**: {self.demo_data['model_metrics']['r2_percentage']:.1f}%
 - **MAPE**: {self.demo_data['model_metrics']['mape']:.2f}%
 
+## Files Generated
+1. **{json_filename}** - Main JSON data file
+2. **{js_filename}** - JavaScript-ready version
+3. **{instructions_path.name}** - This instruction file
+
 ## How to Use in Web Demo
 
 ### Option 1: Replace JavaScript Data
 1. Open your HTML file
-2. Replace the `chartData` object with the data from `{output_path.replace('.json', '_js.js')}`
+2. Replace the `chartData` object with the data from `calculations/{js_filename}`
 
 ### Option 2: Load JSON Dynamically
 ```javascript
 // Load the real demo data
-fetch('{output_path}')
+fetch('calculations/{json_filename}')
     .then(response => response.json())
     .then(data => {{
         // Update chart with real data
@@ -358,17 +396,29 @@ const chartData = {{
 }}
 ```
 
+## Directory Structure
+```
+examples/demo/
+├── real_demo.py          # Main script
+├── calculations/         # Generated data directory
+│   ├── {json_filename}
+│   ├── {js_filename}
+│   └── {instructions_path.name}
+```
+
 ## Notes
 - All prices are in USD
 - Predictions include realistic constraints applied by the model
 - Historical data shows actual {self.ticker} prices
 - Metrics are calculated on real test data, not training data
+- Files are automatically saved in the `calculations/` directory
 """
 
         with open(instructions_path, "w") as f:
             f.write(instructions)
 
         print(f"✅ Usage instructions saved: {instructions_path}")
+        return str(instructions_path)
 
 
 def main():
@@ -434,7 +484,7 @@ def main():
     output_path = generator.save_demo_data(args.output)
     if output_path:
         success_steps.append("✅ Data Export")
-        generator.generate_usage_instructions(output_path)
+        instructions_path = generator.generate_usage_instructions(output_path)
     else:
         print("❌ Pipeline failed at data export")
         return
@@ -447,18 +497,26 @@ def main():
     for step in success_steps:
         print(f"  {step}")
 
-    print(f"\n📁 Output Files:")
-    print(f"  • JSON Data: {output_path}")
-    print(f"  • JavaScript: {output_path.replace('.json', '_js.js')}")
-    print(f"  • Instructions: {output_path.replace('.json', '_instructions.md')}")
+    # Convert to Path objects for better handling
+    output_path_obj = Path(output_path)
+    calculations_dir = output_path_obj.parent
+    
+    print(f"\n📁 Output Files (in calculations/ directory):")
+    print(f"  • JSON Data: {output_path_obj.name}")
+    print(f"  • JavaScript: {output_path_obj.stem}_js.js")
+    print(f"  • Instructions: {output_path_obj.stem}_instructions.md")
+    print(f"  • Directory: {calculations_dir}")
 
     print(f"\n🚀 Next Steps:")
-    print(f"  1. Copy the generated files to your web project")
-    print(f"  2. Update your HTML to use the real data")
-    print(f"  3. Test the demo with authentic predictions!")
+    print(f"  1. Navigate to the calculations/ directory")
+    print(f"  2. Copy the generated files to your web project")
+    print(f"  3. Update your HTML to use the real data")
+    print(f"  4. Test the demo with authentic predictions!")
 
     print(f"\n💡 Pro Tip: Run this script daily to keep your demo data fresh!")
 
 
 if __name__ == "__main__":
     main()
+
+# python examples/demo/real_demo.py --ticker AAPL --period 5y --days 3 

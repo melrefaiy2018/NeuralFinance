@@ -6,12 +6,12 @@ import tensorflow as tf
 try:
     from ..data.fetchers import StockDataFetcher, SentimentAnalyzer
     from ..data.processors import TechnicalIndicatorGenerator
-    from ..models import StockSentimentModel
+    from ..models.improved_model import ImprovedStockModel
 except ImportError:
     # Fallback for direct script execution
     from data.fetchers import StockDataFetcher, SentimentAnalyzer
     from data.processors import TechnicalIndicatorGenerator
-    from models import StockSentimentModel
+    from models.improved_model import ImprovedStockModel
 
 
 class StockAnalyzer:
@@ -23,7 +23,7 @@ class StockAnalyzer:
     def run_analysis_for_stock(
         self, ticker: str, period: str = "1y", interval: str = "1d"
     ) -> Tuple[
-        Optional[StockSentimentModel], Optional[pd.DataFrame], Optional[List[float]], Optional[List]
+        Optional[ImprovedStockModel], Optional[pd.DataFrame], Optional[List[float]], Optional[List]
     ]:
         """
         Runs a complete analysis for a given stock ticker.
@@ -110,29 +110,38 @@ class StockAnalyzer:
                 return None, None, None, None
 
             print("Training model...")
-            model = StockSentimentModel(look_back=20, forecast_horizon=1)
+            model = ImprovedStockModel(look_back=20, forecast_horizon=1)
             X_market, X_sentiment, y = model.prepare_data(combined_df, target_col="close")
+
+            if len(X_market) < 100:
+                print(f"Warning: Limited training data ({len(X_market)} samples)")
 
             split_idx = int(0.8 * len(X_market))
             X_market_train = X_market[:split_idx]
             X_sentiment_train = X_sentiment[:split_idx]
             y_train = y[:split_idx]
 
+            print(f"Training on {len(X_market_train)} samples, validating on {len(X_market) - len(X_market_train)} samples")
+
             model.build_model(X_market.shape[2], X_sentiment.shape[2])
 
             early_stopping = tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss", patience=5, restore_best_weights=True
+                monitor="val_loss", patience=10, restore_best_weights=True, min_delta=0.001
+            )
+            
+            reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+                monitor="val_loss", factor=0.5, patience=5, min_lr=0.00001, verbose=1
             )
 
             model.fit(
                 X_market_train,
                 X_sentiment_train,
                 y_train,
-                epochs=30,
-                batch_size=16,
-                verbose=0,
+                epochs=100,  # Increased epochs
+                batch_size=32,  # Increased batch size
+                verbose=1,  # Show training progress
                 validation_split=0.2,
-                callbacks=[early_stopping],
+                callbacks=[early_stopping, reduce_lr],
             )
 
             print("Making future predictions...")
@@ -153,7 +162,7 @@ class StockAnalyzer:
 
     def self_diagnostic(
         self, ticker: str = "NVDA", period: str = "1y"
-    ) -> Tuple[Optional[StockSentimentModel], Optional[pd.DataFrame], Optional[List[float]]]:
+    ) -> Tuple[Optional[ImprovedStockModel], Optional[pd.DataFrame], Optional[List[float]]]:
         """
         Runs a self-diagnostic test of the analysis pipeline.
 
@@ -162,7 +171,7 @@ class StockAnalyzer:
             period (str, optional): The data period to use. Defaults to '1y'.
 
         Returns:
-            Tuple[Optional[StockSentimentModel], Optional[pd.DataFrame], Optional[List[float]]]:
+            Tuple[Optional[ImprovedStockModel], Optional[pd.DataFrame], Optional[List[float]]]:
                 A tuple containing the trained model, the combined data, and future price predictions.
                 Returns (None, None, None) if the diagnostic fails.
         """
