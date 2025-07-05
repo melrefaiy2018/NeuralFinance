@@ -27,7 +27,7 @@ pip install stock-prediction-lstm
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/stock_prediction_lstm.git
+git clone https://github.com/melrefaiy2018/stock_prediction_lstm.git
 cd stock_prediction_lstm
 pip install -e .
 ```
@@ -35,7 +35,7 @@ pip install -e .
 ### Development Installation
 
 ```bash
-git clone https://github.com/yourusername/stock_prediction_lstm.git
+git clone https://github.com/melrefaiy2018/stock_prediction_lstm.git
 cd stock_prediction_lstm
 pip install -e ".[dev]"
 ```
@@ -285,7 +285,7 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 ### Development Setup
 
 ```bash
-git clone https://github.com/yourusername/stock_prediction_lstm.git
+git clone https://github.com/melrefaiy2018/stock_prediction_lstm.git
 cd stock_prediction_lstm
 pip install -e ".[dev]"
 pre-commit install
@@ -315,9 +315,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support
 
-- **Documentation**: [Full documentation](https://yourusername.github.io/stock_prediction_lstm/) (Coming Soon)
-- **Issues**: [GitHub Issues](https://github.com/yourusername/stock_prediction_lstm/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/yourusername/stock_prediction_lstm/discussions)
+- **Documentation**: [Full documentation](https://melrefaiy2018.github.io/stock_prediction_lstm/) (Coming Soon)
+- **Issues**: [GitHub Issues](https://github.com/melrefaiy2018/stock_prediction_lstm/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/melrefaiy2018/stock_prediction_lstm/discussions)
 
 ## Citation
 
@@ -328,7 +328,7 @@ If you use this package in your research, please cite:
   title={Stock Prediction LSTM: A Comprehensive Stock Prediction System},
   author={Mohamed A.A. Elrefaiy},
   year={2025},
-  url={https://github.com/yourusername/stock_prediction_lstm}
+  url={https://github.com/melrefaiy2018/stock_prediction_lstm}
 }
 ```
 
