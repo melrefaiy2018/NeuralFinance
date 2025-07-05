@@ -5,3 +5,4 @@ stock_prediction_lstm.egg-info
 stock_prediction_lstm/web/sentiment_cache
 examples/demo/calculations
 sentiment_cache
+scratch
