@@ -48,7 +48,7 @@ class ImprovedStockModel:
             df = df.sort_values("date").reset_index(drop=True)
 
         # Fill missing values simply
-        df = df.fillna(method="ffill").fillna(method="bfill").fillna(0)
+        df = df.ffill().bfill().fillna(0)
 
         # Separate feature groups
         sentiment_cols = [col for col in df.columns if "sentiment" in col]
@@ -109,18 +109,20 @@ class ImprovedStockModel:
         Build a simpler, more robust model
         """
         print("Building model...")
+        print(f"Market input dimension: {market_input_dim}")
+        print(f"Sentiment input dimension: {sentiment_input_dim}")
 
         # Market data branch
         market_input = Input(shape=(self.look_back, market_input_dim))
-        market_lstm = LSTM(64, return_sequences=True)(market_input)
+        market_lstm = LSTM(64, return_sequences=True, dropout=0.1, recurrent_dropout=0.1)(market_input)
         market_dropout = Dropout(0.2)(market_lstm)
-        market_lstm2 = LSTM(32)(market_dropout)
+        market_lstm2 = LSTM(32, dropout=0.1)(market_dropout)
 
         # Sentiment data branch
         sentiment_input = Input(shape=(self.look_back, sentiment_input_dim))
-        sentiment_lstm = LSTM(32, return_sequences=True)(sentiment_input)
+        sentiment_lstm = LSTM(32, return_sequences=True, dropout=0.1, recurrent_dropout=0.1)(sentiment_input)
         sentiment_dropout = Dropout(0.2)(sentiment_lstm)
-        sentiment_lstm2 = LSTM(16)(sentiment_dropout)
+        sentiment_lstm2 = LSTM(16, dropout=0.1)(sentiment_dropout)
 
         # Combine branches
         combined = Concatenate()([market_lstm2, sentiment_lstm2])
@@ -129,9 +131,9 @@ class ImprovedStockModel:
         dense1 = Dense(32, activation="relu")(combined)
         dropout = Dropout(0.3)(dense1)  # Increased dropout
         dense2 = Dense(16, activation="relu")(dropout)
-
-        # Multiple approaches to ensure [0,1] output
-        output = Dense(self.forecast_horizon, activation="sigmoid")(dense2)
+        
+        # Use linear activation for final layer to allow more flexible scaling
+        output = Dense(self.forecast_horizon, activation="linear")(dense2)
 
         # Additional safety: clip in the model itself using Lambda layer
         def clip_to_01(x):
@@ -141,7 +143,11 @@ class ImprovedStockModel:
 
         # Create and compile model
         model = Model(inputs=[market_input, sentiment_input], outputs=clipped_output)
-        model.compile(optimizer=Adam(learning_rate=0.001), loss="mse", metrics=["mae"])
+        model.compile(
+            optimizer=Adam(learning_rate=0.0005),  # Reduced learning rate
+            loss="mse", 
+            metrics=["mae"]
+        )
 
         self.model = model
         print(f"Model built with {model.count_params()} parameters")
@@ -228,13 +234,29 @@ class ImprovedStockModel:
         """
         print("\n=== Model Evaluation ===")
 
-        # Ensure both arrays are in original price scale and same shape
-        y_true = y_true.reshape(-1, 1) if y_true.ndim > 1 else y_true.reshape(-1, 1)
-        y_pred = y_pred.reshape(-1, 1) if y_pred.ndim > 1 else y_pred.reshape(-1, 1)
+        # CRITICAL FIX: Both y_true and y_pred should be in the same scale
+        # y_pred is already inverse transformed (in original price scale)
+        # but y_true is still in scaled format, so we need to inverse transform it
+        
+        if hasattr(self.price_scaler, 'data_min_') and hasattr(self.price_scaler, 'data_max_'):
+            # y_true is in scaled format, convert to original scale
+            if y_true.max() <= 1.0 and y_true.min() >= 0.0:
+                print("DEBUG: y_true appears to be scaled, inverse transforming...")
+                y_true_reshaped = y_true.reshape(-1, 1) if y_true.ndim > 1 else y_true.reshape(-1, 1)
+                y_true_original = self.price_scaler.inverse_transform(y_true_reshaped)
+                y_true_flat = y_true_original.flatten()
+            else:
+                print("DEBUG: y_true appears to be in original scale already")
+                y_true_flat = y_true.reshape(-1, 1) if y_true.ndim > 1 else y_true.reshape(-1, 1)
+                y_true_flat = y_true_flat.flatten()
+        else:
+            print("DEBUG: Price scaler not available, using y_true as-is")
+            y_true_flat = y_true.reshape(-1, 1) if y_true.ndim > 1 else y_true.reshape(-1, 1)
+            y_true_flat = y_true_flat.flatten()
 
-        # Flatten for metric calculations
-        y_true_flat = y_true.flatten()
-        y_pred_flat = y_pred.flatten()
+        # y_pred should already be in original scale
+        y_pred_flat = y_pred.reshape(-1, 1) if y_pred.ndim > 1 else y_pred.reshape(-1, 1)
+        y_pred_flat = y_pred_flat.flatten()
 
         # Remove any potential NaN or inf values
         mask = np.isfinite(y_true_flat) & np.isfinite(y_pred_flat)
@@ -243,7 +265,7 @@ class ImprovedStockModel:
 
         if len(y_true_clean) == 0:
             print("Error: No valid data points for evaluation")
-            return {"rmse": np.nan, "mae": np.nan, "r2": np.nan, "mape": np.nan}
+            return {"rmse": np.nan, "mae": np.nan, "r2": np.nan, "mape": np.nan, "mse": np.nan}
 
         # Calculate metrics using sklearn functions for accuracy
         mse = mean_squared_error(y_true_clean, y_pred_clean)
@@ -268,17 +290,26 @@ class ImprovedStockModel:
 
         # Ensure reasonable ranges
         if r2 < -100:  # Cap extremely negative R² values
+            print(f"WARNING: R² score was extremely negative ({r2:.2f}), capping at -100")
             r2 = -100
         if mape > 1000:  # Cap extremely high MAPE values
+            print(f"WARNING: MAPE was extremely high ({mape:.2f}%), capping at 1000%")
             mape = 1000
 
-        results = {"rmse": rmse, "mae": mae, "r2": r2, "mape": mape}
+        results = {"rmse": rmse, "mae": mae, "r2": r2, "mape": mape, "mse": mse}
 
         print(f"Evaluation Results:")
         print(f"RMSE: {rmse:.4f}")
         print(f"MAE: {mae:.4f}")
         print(f"R²: {r2:.4f}")
         print(f"MAPE: {mape:.2f}%")
+        print(f"MSE: {mse:.4f}")
+
+        # Additional debugging information
+        print(f"DEBUG: y_true range: [{np.min(y_true_clean):.2f}, {np.max(y_true_clean):.2f}]")
+        print(f"DEBUG: y_pred range: [{np.min(y_pred_clean):.2f}, {np.max(y_pred_clean):.2f}]")
+        print(f"DEBUG: y_true mean: {np.mean(y_true_clean):.2f}")
+        print(f"DEBUG: y_pred mean: {np.mean(y_pred_clean):.2f}")
 
         return results
 

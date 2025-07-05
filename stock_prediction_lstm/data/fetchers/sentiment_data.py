@@ -710,8 +710,18 @@ class SentimentAnalyzer:
         scores = {"positive": 0.5, "negative": 0.3, "neutral": 0.2}
 
         try:
+            # Normalize date for comparison to avoid timezone issues
+            normalized_date = pd.to_datetime(date)
+            if hasattr(normalized_date, 'tz') and normalized_date.tz is not None:
+                normalized_date = normalized_date.tz_localize(None)
+            
+            # Normalize stock data index to timezone-naive if needed
+            stock_index = stock_data.index
+            if hasattr(stock_index, 'tz') and stock_index.tz is not None:
+                stock_index = stock_index.tz_localize(None)
+                
             # Get data up to the specified date
-            stock_subset = stock_data[stock_data.index <= date]
+            stock_subset = stock_data[stock_index <= normalized_date]
 
             if len(stock_subset) < 10:
                 return scores
@@ -726,7 +736,12 @@ class SentimentAnalyzer:
             market_returns = []
             for name, data in market_data.items():
                 try:
-                    market_subset = data[data.index <= date]
+                    # Normalize market data index to timezone-naive if needed
+                    market_index = data.index
+                    if hasattr(market_index, 'tz') and market_index.tz is not None:
+                        market_index = market_index.tz_localize(None)
+                        
+                    market_subset = data[market_index <= normalized_date]
                     if len(market_subset) >= 10:
                         recent_market = market_subset.tail(10)
                         market_return = (
