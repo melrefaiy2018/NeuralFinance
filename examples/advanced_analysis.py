@@ -14,9 +14,12 @@ from stock_prediction_lstm.config import Config
 
 def setup_advanced_calculations_directory():
     """Create and configure an advanced calculations directory for organized output."""
-    # Create timestamped calculations directory
+    # Get the directory where this script is located
+    script_dir = Path(__file__).parent
+    
+    # Create timestamped calculations directory in the same location as the script
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    calc_dir = Path(f"advanced_analysis_{timestamp}")
+    calc_dir = script_dir / f"advanced_analysis_{timestamp}"
     calc_dir.mkdir(exist_ok=True)
     
     # Create comprehensive subdirectories for advanced analysis
@@ -97,6 +100,10 @@ def run_advanced_analysis(calc_dir):
     # Change to visualizations directory for chart outputs
     original_cwd = os.getcwd()
     viz_dir = calc_dir / "visualizations"
+    
+    # Convert calc_dir to absolute path before changing directories
+    calc_dir = calc_dir.absolute()
+    
     os.chdir(viz_dir)
     
     try:
@@ -116,7 +123,7 @@ def run_advanced_analysis(calc_dir):
             # Save processed data
             print("\n💾 Saving processed data...")
             data_file = calc_dir / "data" / f"{ticker}_processed_data.csv"
-            df.to_csv(data_file, index=True)
+            df.to_csv(str(data_file.absolute()), index=True)
             print(f"📊 Data saved to: data/{ticker}_processed_data.csv")
             
             # Create visualizations
@@ -130,7 +137,7 @@ def run_advanced_analysis(calc_dir):
             # Save predictions
             print(f"\n💰 Saving prediction results...")
             predictions_file = calc_dir / "predictions" / f"{ticker}_predictions.txt"
-            with open(predictions_file, 'w') as f:
+            with open(str(predictions_file.absolute()), 'w') as f:
                 f.write(f"{ticker} Future Price Predictions\n")
                 f.write("=" * 40 + "\n")
                 f.write(f"Analysis Date: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
@@ -156,7 +163,7 @@ def run_advanced_analysis(calc_dir):
                 print(f"\n🤖 Saving trained model...")
                 try:
                     model_file = calc_dir / "models" / f"{ticker}_lstm_model"
-                    model.save(str(model_file))
+                    model.save(str(model_file.absolute()))
                     print(f"🤖 Model saved to: models/{ticker}_lstm_model")
                 except Exception as e:
                     print(f"⚠️  Could not save model: {str(e)}")
@@ -174,7 +181,7 @@ def run_advanced_analysis(calc_dir):
         print(f"❌ Error during analysis: {str(e)}")
         # Save error details
         error_file = calc_dir / "logs" / "analysis_error.txt"
-        with open(error_file, 'w') as f:
+        with open(str(error_file.absolute()), 'w') as f:
             f.write(f"Analysis Error: {str(e)}\n")
             f.write(f"Time: {datetime.now()}\n")
             f.write(f"Ticker: {ticker}\n")
@@ -191,7 +198,7 @@ def create_analysis_report(calc_dir, ticker, df, future_prices, future_dates, mo
     """Create a comprehensive analysis report."""
     report_file = calc_dir / "analysis_reports" / f"{ticker}_analysis_report.txt"
     
-    with open(report_file, 'w') as f:
+    with open(str(report_file.absolute()), 'w') as f:
         f.write(f"Comprehensive Stock Analysis Report: {ticker}\n")
         f.write("=" * 60 + "\n")
         f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n\n")
@@ -253,7 +260,7 @@ def create_session_summary(calc_dir):
                 file_counts[subdir.name] = count
                 total_files += count
     
-    with open(summary_file, 'w') as f:
+    with open(str(summary_file.absolute()), 'w') as f:
         f.write("Advanced Stock Analysis Session Summary\n")
         f.write("=" * 50 + "\n")
         f.write(f"Session completed: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")

@@ -10,10 +10,24 @@ class Config:
     # Model Defaults
     DEFAULT_LOOKBACK = 20
     DEFAULT_PREDICTION_DAYS = 5
+    DEFAULT_LSTM_UNITS = 100
+    DEFAULT_EPOCHS = 50
+    DEFAULT_BATCH_SIZE = 32
+    DEFAULT_SEQUENCE_LENGTH = 20
+    DEFAULT_DROPOUT_RATE = 0.2
     
     # Data Defaults
     DEFAULT_PERIOD = "1y"
     DEFAULT_INTERVAL = "1d"
+    
+    # Feature Flags
+    CACHE_ENABLED = True
+    SENTIMENT_ANALYSIS_ENABLED = True
+    
+    # Directory Configuration (can be dynamically set)
+    DATA_CACHE_DIR = None
+    MODELS_DIR = None
+    LOGS_DIR = None
     
     @classmethod
     def load_api_keys(cls):
