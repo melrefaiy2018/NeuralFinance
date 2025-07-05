@@ -338,7 +338,7 @@ If you use this package in your research, please cite:
 ```bibtex
 @software{stock_prediction_lstm,
   title={Stock Prediction LSTM: A Comprehensive Stock Prediction System},
-  author={Your Name},
+  author={Mohamed A.A. Elrefaiy},
   year={2025},
   url={https://github.com/yourusername/stock_prediction_lstm}
 }

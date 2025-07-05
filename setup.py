@@ -116,7 +116,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "stock-predict=stock_prediction_lstm.cli.main:cli",
+            "stock-predict=stock_prediction_lstm.cli.main:main",
         ],
     },
     zip_safe=False,
