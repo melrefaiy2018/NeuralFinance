@@ -7,11 +7,18 @@ with proper data scaling and evaluation metrics.
 
 import numpy as np
 import pandas as pd
-import tensorflow as tf
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Dense, LSTM, Dropout, Input, Concatenate, Lambda
-from tensorflow.keras.optimizers import Adam
-import tensorflow as tf
+
+# Use standalone keras directly
+try:
+    from keras.models import Model
+    from keras.layers import Dense, LSTM, Dropout, Input, Concatenate, Lambda
+    from keras.optimizers import Adam
+    import tensorflow as tf
+    tf.random.set_seed(42)
+except ImportError:
+    # If keras is not available, try to install it
+    print("Keras not found. Please install it with: pip install keras")
+    raise
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 import matplotlib.pyplot as plt
