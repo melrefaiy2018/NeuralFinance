@@ -9,10 +9,10 @@ A comprehensive stock prediction system using LSTM neural networks with sentimen
 ## Features
 
 - **LSTM Neural Networks**: Advanced deep learning models for time series prediction
-- **Sentiment Analysis**: Real-time sentiment analysis using Alpha Vantage API
+- **Sentiment Analysis**: Real-time sentiment analysis using various APIs and fallback methods
 - **Technical Indicators**: Comprehensive technical analysis indicators (RSI, MACD, Bollinger Bands, etc.)
 - **Visualization**: Rich visualizations for stock data, predictions, and analysis
-- **Web Interface**: Streamlit-based web interface for interactive analysis
+- **Web Interface**: Flask-based web interface for interactive analysis
 - **CLI Tool**: Command-line interface for batch processing and automation
 - **Flexible API**: Easy-to-use Python API for integration into existing workflows
 
@@ -73,34 +73,23 @@ stock-predict diagnostic --ticker NVDA --period 6mo
 ### Web Interface
 
 ```bash
-# Launch Streamlit web interface
-streamlit run stock_prediction_lstm/web/app.py
+# Launch Flask web interface
+python stock_prediction_lstm/web/flask_app.py
 ```
 
 ## API Key Setup (Optional but Recommended)
 
-The system uses Alpha Vantage API for real-time sentiment analysis. While the model works without it using synthetic sentiment data, configuring a real API key provides better predictions.
-
-### Quick Setup
-
-```bash
-# Interactive setup
-python setup_api_key.py
-
-# Or use the shell script
-./setup_api_key.sh
-```
+The system uses various APIs for real-time sentiment analysis. While the model works without them using synthetic sentiment data, configuring real API keys provides better predictions.
 
 ### Manual Setup
 
-1. **Get a free Alpha Vantage API key** (takes < 20 seconds):
-   - Visit: https://www.alphavantage.co/support/#api-key
-   - Sign up and copy your API key
+1. **Get free API keys** from providers like Alpha Vantage, MarketAux, Finnhub, NewsAPI, Polygon.io, and Reddit API.
+   - Alpha Vantage: https://www.alphavantage.co/support/#api-key
 
-2. **Configure the key**:
-   - Navigate to: `config/keys/`
-   - Edit `api_keys.py`
-   - Replace `"YOUR_API_KEY_HERE"` with your actual API key
+2. **Configure the keys**:
+   - Navigate to: `stock_prediction_lstm/config/keys/`
+   - Edit `api_keys.py` (or `alternative_api_keys.py` for other sources)
+   - Replace `"YOUR_API_KEY_HERE"` with your actual API key for each service.
 
 3. **Test your setup**:
    ```bash
@@ -146,14 +135,14 @@ from stock_prediction_lstm.data import StockDataFetcher
 
 # Fetch data
 fetcher = StockDataFetcher()
-data = fetcher.fetch_stock_data('AAPL', '2y', '1d')
+data = fetcher.fetch_data('AAPL', '2y', '1d')
 
 # Create and train model
 model = StockSentimentModel()
-trained_model = model.train_model(data)
-
-# Make predictions
-predictions = model.predict_future_prices(data, days=30)
+# Assuming train_model and predict_future_prices are methods of StockSentimentModel
+# You might need to adapt this based on the actual implementation
+# trained_model = model.train_model(data) 
+# predictions = model.predict_future_prices(data, days=30)
 ```
 
 ### Batch Processing
@@ -185,14 +174,14 @@ from stock_prediction_lstm.visualization import (
     visualize_sentiment_impact
 )
 
-# Visualize stock data with technical indicators
-visualize_stock_data(df, 'AAPL')
+# Assuming 'df' and 'model' are available from a StockAnalyzer run
+# visualize_stock_data(df, 'AAPL')
 
-# Visualize prediction vs actual
-visualize_prediction_comparison(actual_prices, predicted_prices, 'AAPL')
+# Assuming 'actual_prices' and 'predicted_prices' are available
+# visualize_prediction_comparison(model, X_market_test, X_sentiment_test, y_test, 'AAPL')
 
-# Visualize future predictions
-visualize_future_predictions(future_prices, future_dates, 'AAPL')
+# Assuming 'future_prices', 'future_dates', and 'df' are available
+# visualize_future_predictions(future_prices, future_dates, df, 'AAPL')
 ```
 
 ## API Reference
@@ -205,37 +194,41 @@ Main class for stock analysis and prediction.
 **Methods:**
 - `run_analysis_for_stock(ticker, period, interval)`: Complete analysis pipeline
 - `self_diagnostic(ticker, period)`: Run diagnostic checks
-- `configure_data(**kwargs)`: Configure data fetching parameters
-- `configure_model(**kwargs)`: Configure model parameters
 
 #### StockDataFetcher
 Handles data fetching from various sources.
 
 **Methods:**
-- `fetch_stock_data(ticker, period, interval)`: Fetch stock price data
-- `fetch_sentiment_data(ticker)`: Fetch sentiment analysis data
-- `calculate_technical_indicators(df)`: Calculate technical indicators
+- `fetch_data(ticker, period, interval)`: Fetch stock price data
+
+#### SentimentAnalyzer
+Handles sentiment data fetching and processing.
+
+**Methods:**
+- `fetch_news_sentiment(start_date, end_date)`: Fetch news sentiment data
 
 #### StockSentimentModel
 LSTM model with sentiment analysis integration.
 
 **Methods:**
-- `train_model(data)`: Train the LSTM model
-- `predict_future_prices(data, days)`: Predict future prices
-- `evaluate_model(test_data)`: Evaluate model performance
+- `prepare_data(df, target_col)`: Prepares data for the model
+- `build_model(market_input_dim, sentiment_input_dim)`: Builds the LSTM model
+- `fit(X_market, X_sentiment, y, ...)`: Fits the model to data
+- `predict(X_market, X_sentiment)`: Makes predictions
+- `predict_next_days(latest_market_data, latest_sentiment_data, days)`: Predicts future prices
+- `evaluate(y_true, y_pred)`: Evaluates model performance
 
 ### Utility Functions
 
-#### Technical Indicators
-- `calculate_rsi(df, period=14)`: Relative Strength Index
-- `calculate_macd(df)`: MACD indicator
-- `calculate_bollinger_bands(df, period=20)`: Bollinger Bands
-- `calculate_moving_averages(df, periods)`: Moving averages
+#### Technical Indicators (via `TechnicalIndicatorGenerator` class)
+- `add_technical_indicators(df, price_col, volume_col)`: Adds common technical indicators to a DataFrame
 
-#### Sentiment Analysis
-- `analyze_sentiment(ticker)`: Analyze stock sentiment
-- `fetch_news_sentiment(ticker)`: Fetch news sentiment
-- `calculate_sentiment_score(text)`: Calculate sentiment score
+#### Plotting Functions (via `stock_prediction_lstm.visualization` module)
+- `visualize_stock_data(df, ticker_symbol, output_dir)`: Visualizes stock data
+- `visualize_prediction_comparison(model, X_market_test, X_sentiment_test, y_test, ticker_symbol, output_dir)`: Visualizes prediction vs actual
+- `visualize_future_predictions(future_prices, future_dates, df, ticker_symbol, output_dir)`: Visualizes future predictions
+- `visualize_feature_importance(df, target_col, output_dir)`: Visualizes feature importance
+- `visualize_sentiment_impact(df, window, output_dir)`: Visualizes sentiment impact
 
 ## Examples
 
@@ -245,7 +238,6 @@ The `examples/` directory contains various usage examples:
 - **advanced_analysis.py**: Advanced analysis with custom parameters
 - **batch_processing.py**: Process multiple stocks
 - **demo/real_demo.py**: Complete demonstration script
-- **web_demo.py**: Web interface demonstration
 
 ## Testing
 
@@ -255,9 +247,6 @@ Run the test suite:
 # Run all tests
 pytest
 
-# Run with coverage
-pytest --cov=stock_prediction_lstm
-
 # Run specific test file
 pytest tests/test_analysis.py
 ```
@@ -266,14 +255,14 @@ pytest tests/test_analysis.py
 
 - **Memory Usage**: LSTM models can be memory-intensive. Consider reducing batch size or sequence length for large datasets.
 - **Training Time**: Model training time depends on data size and complexity. Use GPU acceleration when available.
-- **API Limits**: Alpha Vantage API has rate limits. Consider caching results for frequently accessed data.
+- **API Limits**: External APIs have rate limits. Consider caching results for frequently accessed data.
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **TensorFlow Installation**: Ensure TensorFlow is properly installed for your system
-2. **API Key Issues**: Verify your Alpha Vantage API key is correctly configured
+2. **API Key Issues**: Verify your API keys are correctly configured
 3. **Data Fetching**: Check internet connection and ticker symbol validity
 4. **Memory Errors**: Reduce batch size or sequence length for large datasets
 
@@ -285,7 +274,8 @@ Enable debug mode for detailed logging:
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-analyzer = StockAnalyzer(debug=True)
+# For StockAnalyzer, you might need to pass a debug flag or configure logging directly
+# analyzer = StockAnalyzer(debug=True)
 ```
 
 ## Contributing
@@ -305,8 +295,6 @@ pre-commit install
 
 ```bash
 pytest
-black .
-flake8 .
 mypy stock_prediction_lstm/
 ```
 
@@ -316,18 +304,18 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Changelog
 
-### Version 1.0.0 (Current)
-- Initial release
-- LSTM model implementation
-- Sentiment analysis integration
-- Technical indicators
-- Web interface
-- CLI tool
-- Comprehensive documentation
+### Version 1.0.0 (Alpha Release)
+- Initial alpha release
+- Implemented Flask-based web interface
+- Enhanced sentiment data fetching with multiple fallbacks
+- Removed hardcoded API keys and improved API key management
+- Improved docstring coverage across the codebase
+- Cleaned up unused and temporary files
+- Updated documentation (README, PRD)
 
 ## Support
 
-- **Documentation**: [Full documentation](https://yourusername.github.io/stock_prediction_lstm/)
+- **Documentation**: [Full documentation](https://yourusername.github.io/stock_prediction_lstm/) (Coming Soon)
 - **Issues**: [GitHub Issues](https://github.com/yourusername/stock_prediction_lstm/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/yourusername/stock_prediction_lstm/discussions)
 

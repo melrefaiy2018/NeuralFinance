@@ -6,4 +6,4 @@ This module provides configuration settings and API key management for the stock
 
 from .settings import Config
 
-__all__ = ['Config']
+__all__ = ["Config"]

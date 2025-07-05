@@ -4,26 +4,32 @@
 from setuptools import setup, find_packages
 import os
 
+
 # Read version from __version__.py
 def read_version():
-    version_file = os.path.join(os.path.dirname(__file__), 'stock_prediction_lstm', '__version__.py')
-    with open(version_file, 'r') as f:
+    version_file = os.path.join(
+        os.path.dirname(__file__), "stock_prediction_lstm", "__version__.py"
+    )
+    with open(version_file, "r") as f:
         exec(f.read())
-    return locals()['version']
+    return locals()["version"]
+
 
 # Read requirements from requirements.txt
 def read_requirements():
-    requirements_file = os.path.join(os.path.dirname(__file__), 'requirements.txt')
-    with open(requirements_file, 'r') as f:
-        return [line.strip() for line in f if line.strip() and not line.startswith('#')]
+    requirements_file = os.path.join(os.path.dirname(__file__), "requirements.txt")
+    with open(requirements_file, "r") as f:
+        return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
 
 # Read long description from README if it exists
 def read_long_description():
-    readme_file = os.path.join(os.path.dirname(__file__), 'README.md')
+    readme_file = os.path.join(os.path.dirname(__file__), "README.md")
     if os.path.exists(readme_file):
-        with open(readme_file, 'r', encoding='utf-8') as f:
+        with open(readme_file, "r", encoding="utf-8") as f:
             return f.read()
     return ""
+
 
 # Read requirements for development
 def read_dev_requirements():
@@ -42,6 +48,7 @@ def read_dev_requirements():
     ]
     return dev_requirements
 
+
 setup(
     name="stock-prediction-lstm",
     version=read_version(),
@@ -57,7 +64,7 @@ setup(
         "Source Code": "https://github.com/yourusername/stock_prediction_lstm",
         "Changelog": "https://github.com/yourusername/stock_prediction_lstm/blob/main/CHANGELOG.md",
     },
-    packages=find_packages(exclude=['tests*', 'examples*', 'docs*']),
+    packages=find_packages(exclude=["tests*", "examples*", "docs*"]),
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Financial and Insurance Industry",
