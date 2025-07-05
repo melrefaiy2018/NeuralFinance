@@ -39,12 +39,10 @@
         
         <!-- Header Stats -->
         <div class="hidden md:flex items-center space-x-6 text-sm">
-            <div class="text-center">
-                <div class="text-cyan-400 font-semibold">Market</div>
-                <div class="text-neutral-300 {% if market_state == 'open' %}text-emerald-400{% else %}text-rose-400{% endif %}">
-                    {{ market_state|title if market_state else 'Closed' }}
-                </div>
-            </div>
+            {% set show_label = true %}
+            {% set label_text = 'Market' %}
+            {% set layout = 'vertical' %}
+            {% include 'partials/market_status.html' %}
             <div class="h-8 w-px bg-neutral-700"></div>
             <div class="text-center">
                 <div class="text-cyan-400 font-semibold">Models</div>
@@ -169,12 +167,10 @@
                         <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
                     </div>
                     <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-neutral-400">Status:</span>
-                            <span class="{% if market_state == 'open' %}text-emerald-400{% else %}text-rose-400{% endif %}">
-                                {{ market_state|title if market_state else 'Closed' }}
-                            </span>
-                        </div>
+                        {% set show_label = true %}
+                        {% set label_text = 'Status:' %}
+                        {% set layout = 'horizontal' %}
+                        {% include 'partials/market_status.html' %}
                         <div class="flex justify-between">
                             <span class="text-neutral-400">Models:</span>
                             <span class="text-cyan-400">AI Ready</span>

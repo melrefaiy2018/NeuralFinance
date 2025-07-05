@@ -1,0 +1,34 @@
+{#
+    Market Status Partial Template
+    
+    Usage:
+    {% set show_label = true %}
+    {% set label_text = 'Market' %}
+    {% set layout = 'vertical' %}
+    {% include 'partials/market_status.html' %}
+    
+    Parameters:
+    - show_label: Whether to show a label before the status
+    - label_text: Custom label text (defaults to 'Market')
+    - layout: 'vertical' (default) or 'horizontal' for flex layout
+#}
+
+{%- if layout == 'horizontal' -%}
+<div class="flex justify-between">
+    {%- if show_label -%}
+    <span class="text-neutral-400">{{ label_text }}</span>
+    {%- endif -%}
+    <span class="{% if market_state == 'open' %}text-emerald-400{% else %}text-rose-400{% endif %}">
+        {{ market_state|title if market_state else 'Closed' }}
+    </span>
+</div>
+{%- else -%}
+<div class="text-center">
+    {%- if show_label -%}
+    <div class="text-cyan-400 font-semibold">{{ label_text }}</div>
+    {%- endif -%}
+    <div class="text-neutral-300 {% if market_state == 'open' %}text-emerald-400{% else %}text-rose-400{% endif %}">
+        {{ market_state|title if market_state else 'Closed' }}
+    </div>
+</div>
+{%- endif -%}
