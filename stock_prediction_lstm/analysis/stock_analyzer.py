@@ -7,11 +7,13 @@ try:
     from ..data.fetchers import StockDataFetcher, SentimentAnalyzer
     from ..data.processors import TechnicalIndicatorGenerator
     from ..models.improved_model import ImprovedStockModel
+    from ..config.model_config import ModelConfig
 except ImportError:
     # Fallback for direct script execution
     from data.fetchers import StockDataFetcher, SentimentAnalyzer
     from data.processors import TechnicalIndicatorGenerator
     from models.improved_model import ImprovedStockModel
+    from config.model_config import ModelConfig
 
 
 class StockAnalyzer:
@@ -19,6 +21,18 @@ class StockAnalyzer:
     Provides a high-level interface to run stock analysis, including data fetching,
     preprocessing, model training, and prediction.
     """
+    
+    def __init__(self, config: Optional[ModelConfig] = None):
+        """
+        Initialize StockAnalyzer with optional configuration.
+        
+        Args:
+            config (Optional[ModelConfig]): Configuration object for model parameters.
+                                          If None, default configuration will be used.
+        """
+        self.config = config if config is not None else ModelConfig.default()
+        print(f"Initialized StockAnalyzer with model type: {self.config.model_type}")
+        print(f"Sequence length: {self.config.sequence_length}, Prediction horizon: {self.config.prediction_horizon}")
 
     def run_analysis_for_stock(
         self, ticker: str, period: str = "1y", interval: str = "1d"
@@ -110,23 +124,37 @@ class StockAnalyzer:
                 return None, None, None, None
 
             print("Training model...")
-            model = ImprovedStockModel(look_back=20, forecast_horizon=1)
+            # Use configuration parameters for model creation
+            if self.config.model_type == 'improved':
+                model = ImprovedStockModel(
+                    look_back=self.config.sequence_length, 
+                    forecast_horizon=self.config.prediction_horizon
+                )
+            else:
+                # Default to improved model if lstm_attention is not available
+                model = ImprovedStockModel(
+                    look_back=self.config.sequence_length, 
+                    forecast_horizon=self.config.prediction_horizon
+                )
+                
             X_market, X_sentiment, y = model.prepare_data(combined_df, target_col="close")
 
             if len(X_market) < 100:
                 print(f"Warning: Limited training data ({len(X_market)} samples)")
 
-            split_idx = int(0.8 * len(X_market))
+            # Use configuration for train/test split
+            split_idx = int((1.0 - self.config.test_split) * len(X_market))
             X_market_train = X_market[:split_idx]
             X_sentiment_train = X_sentiment[:split_idx]
             y_train = y[:split_idx]
 
             print(f"Training on {len(X_market_train)} samples, validating on {len(X_market) - len(X_market_train)} samples")
+            print(f"Using config - Sequence length: {self.config.sequence_length}, Epochs: {self.config.epochs}, Batch size: {self.config.batch_size}")
 
             model.build_model(X_market.shape[2], X_sentiment.shape[2])
 
             early_stopping = tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss", patience=10, restore_best_weights=True, min_delta=0.001
+                monitor="val_loss", patience=self.config.early_stopping_patience, restore_best_weights=True, min_delta=0.001
             )
             
             reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
@@ -137,18 +165,18 @@ class StockAnalyzer:
                 X_market_train,
                 X_sentiment_train,
                 y_train,
-                epochs=100,  # Increased epochs
-                batch_size=32,  # Increased batch size
+                epochs=self.config.epochs,
+                batch_size=self.config.batch_size,
                 verbose=1,  # Show training progress
-                validation_split=0.2,
+                validation_split=self.config.validation_split,
                 callbacks=[early_stopping, reduce_lr],
             )
 
             print("Making future predictions...")
-            future_prices = model.predict_next_days(X_market[-1], X_sentiment[-1], days=5)
+            future_prices = model.predict_next_days(X_market[-1], X_sentiment[-1], days=self.config.prediction_horizon)
 
             last_date = combined_df["date"].iloc[-1]
-            future_dates = [last_date + dt.timedelta(days=i + 1) for i in range(5)]
+            future_dates = [last_date + dt.timedelta(days=i + 1) for i in range(self.config.prediction_horizon)]
 
             print(f"Analysis completed for {ticker}")
             return model, combined_df, future_prices, future_dates

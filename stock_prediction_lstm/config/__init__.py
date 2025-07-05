@@ -5,5 +5,6 @@ This module provides configuration settings and API key management for the stock
 """
 
 from .settings import Config
+from .model_config import ModelConfig
 
-__all__ = ["Config"]
+__all__ = ["Config", "ModelConfig"]

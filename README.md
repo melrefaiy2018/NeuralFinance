@@ -225,6 +225,27 @@ config = ModelConfig(
 
 # Initialize with custom configuration
 analyzer = StockAnalyzer(config=config)
+
+# Show configuration details
+print(f"\nConfiguration Summary:")
+print(f"- LSTM Architecture: {config.lstm_units} units with dropout {config.dropout_rates}")
+print(f"- Training: {config.epochs} epochs, batch size {config.batch_size}")
+print(f"- Data: {config.sequence_length} day lookback, {config.prediction_horizon} day forecast")
+print(f"- Technical indicators: {config.technical_indicators}")
+print(f"- Sentiment sources: {config.sentiment_sources}")
+
+# Example usage (commented out since it requires API keys and data)
+# Uncomment the following lines once you have configured your API keys:
+# 
+# print("\nRunning analysis for AAPL...")
+# model, data, predictions = analyzer.run_analysis_for_stock("AAPL", period="1y")
+# if model and predictions:
+#     print(f"Predicted prices for next {config.prediction_horizon} days:")
+#     for i, price in enumerate(predictions):
+#         print(f"Day {i+1}: ${price:.2f}")
+
+print("\n✅ ModelConfig successfully imported and configured!")
+print("📝 To run actual analysis, configure your Alpha Vantage API key first.")
 ```
 
 ### Multi-Asset Portfolio Analysis
