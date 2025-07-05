@@ -519,4 +519,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# python examples/demo/real_demo.py --ticker AAPL --period 5y --days 3 
+# python examples/demo/real_demo.py --ticker AAPL --period 5y --days 3

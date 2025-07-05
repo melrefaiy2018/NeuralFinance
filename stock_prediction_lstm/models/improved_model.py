@@ -48,7 +48,7 @@ class ImprovedStockModel:
             df = df.sort_values("date").reset_index(drop=True)
 
         # Fill missing values simply
-        df = df.fillna(method="ffill").fillna(method="bfill").fillna(0)
+        df = df.ffill().bfill().fillna(0)
 
         # Separate feature groups
         sentiment_cols = [col for col in df.columns if "sentiment" in col]
