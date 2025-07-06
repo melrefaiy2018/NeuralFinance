@@ -113,7 +113,7 @@ Walk-forward validation is implemented to mitigate look-ahead bias and provide a
 ## System Requirements
 
 * Minimum: 8GB RAM, multi-core CPU.
-* Recommended: 16GB RAM, NVIDIA CUDA-compatible GPU.
+* Recommended: 16GB RAM.
 * Software: Python 3.8+, TensorFlow 2.x, pandas, numpy, yfinance, scikit-learn, Flask.
 
 ---
