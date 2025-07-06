@@ -8,3 +8,4 @@ sentiment_cache
 scratch
 calculations
 *.log
+agent.md
