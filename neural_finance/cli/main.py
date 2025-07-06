@@ -4,7 +4,7 @@ from ..analysis.stock_analyzer import StockAnalyzer
 
 @click.group()
 def cli():
-    """Stock Prediction LSTM CLI"""
+    """Neural Finance CLI"""
     pass
 
 

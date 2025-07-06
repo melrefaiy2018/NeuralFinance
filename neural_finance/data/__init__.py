@@ -1,4 +1,4 @@
-"""Data handling module for stock prediction."""
+"""Data handling module for neural finance."""
 
 from .fetchers import StockDataFetcher, SentimentAnalyzer
 from .processors import TechnicalIndicatorGenerator

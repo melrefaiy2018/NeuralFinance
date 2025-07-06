@@ -17,7 +17,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../../'))
 
-from stock_prediction_lstm.data.fetchers.stock_data import StockDataFetcher
+from neural_finance.data.fetchers.stock_data import StockDataFetcher
 
 
 class TestStockDataFetcher:
@@ -45,7 +45,7 @@ class TestStockDataFetcher:
         fetcher = StockDataFetcher("aapl")
         assert fetcher.ticker_symbol == "AAPL"
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_success(self, mock_ticker_class):
         """Test successful data fetching for valid ticker."""
         # Create mock data
@@ -74,7 +74,7 @@ class TestStockDataFetcher:
         assert 'price' in result.columns
         assert 'date' in result.columns
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_valid_columns(self, mock_ticker_class):
         """Test that fetched data has all required columns."""
         # Create mock data
@@ -104,7 +104,7 @@ class TestStockDataFetcher:
         # Check that price equals close (ignoring index/name differences)
         assert (result['price'].values == result['close'].values).all()
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_date_range(self, mock_ticker_class):
         """Test that fetched data falls within expected date range."""
         start_date = datetime(2023, 1, 1)
@@ -143,7 +143,7 @@ class TestStockDataFetcher:
         fetcher = StockDataFetcher("AAPL", "1d", "5m")
         assert fetcher.interval == "5m"
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_invalid_ticker(self, mock_ticker_class):
         """Test handling of invalid ticker symbols."""
         # Setup mock to return empty dataframe
@@ -156,7 +156,7 @@ class TestStockDataFetcher:
         
         assert result is None
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_network_error(self, mock_ticker_class):
         """Test handling of network errors during data fetching."""
         # Setup mock to raise an exception
@@ -169,7 +169,7 @@ class TestStockDataFetcher:
         
         assert result is None
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_empty_response(self, mock_ticker_class):
         """Test handling of empty response from yfinance."""
         # Setup mock to return empty dataframe
@@ -192,7 +192,7 @@ class TestStockDataFetcher:
             assert fetcher.period == "1d"
             assert fetcher.interval == "1h"
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_malformed_response(self, mock_ticker_class):
         """Test handling of malformed data from yfinance."""
         # Create malformed data (missing expected columns)
@@ -225,7 +225,7 @@ class TestStockDataFetcher:
         fetcher = StockDataFetcher("AAPL", "1mo", "invalid_interval")
         assert fetcher.interval == "invalid_interval"
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_minimal_data_points(self, mock_ticker_class):
         """Test fetching with minimal data points."""
         # Create minimal mock data
@@ -251,7 +251,7 @@ class TestStockDataFetcher:
         assert result is not None
         assert len(result) == 2
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_with_nan_values(self, mock_ticker_class):
         """Test handling of NaN values in fetched data."""
         # Create data with NaN values
@@ -278,7 +278,7 @@ class TestStockDataFetcher:
         # NaN values should be handled by forward/backward fill
         assert not result[['open', 'high', 'low', 'close', 'volume']].isnull().any().any()
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_extreme_values(self, mock_ticker_class):
         """Test handling of extreme price values."""
         # Create data with extreme values
@@ -331,7 +331,7 @@ class TestStockDataFetcher:
         assert len(results) == 4
         assert set(results) == set(tickers)
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_data_processing_pipeline(self, mock_ticker_class):
         """Test the complete data processing pipeline."""
         # Create comprehensive mock data
@@ -373,7 +373,7 @@ class TestStockDataFetcher:
             assert fetcher.ticker_symbol == "AAPL"
             assert fetcher.interval == "1d"
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_fetch_data_different_intervals(self, mock_ticker_class):
         """Test fetcher with different interval configurations."""
         # For 1m interval, mock an error to simulate Yahoo's restriction

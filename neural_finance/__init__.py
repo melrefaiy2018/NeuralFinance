@@ -1,5 +1,5 @@
 """
-Stock Prediction LSTM Package
+Neural Finance Package
 
 This package provides tools for fetching stock data, analyzing sentiment,
 building and training LSTM models for stock price prediction, and visualizing results.

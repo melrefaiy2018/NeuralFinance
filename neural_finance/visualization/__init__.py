@@ -1,4 +1,4 @@
-"""Visualization tools for stock prediction."""
+"""Visualization tools for neural finance."""
 
 from .plotters import (
     visualize_stock_data,

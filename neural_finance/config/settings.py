@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 
 class Config:
     """
-    Configuration class for the stock prediction system.
+    Configuration class for the neural finance system.
     """
 
     # API Configuration

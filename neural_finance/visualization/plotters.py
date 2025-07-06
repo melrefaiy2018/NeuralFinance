@@ -104,7 +104,7 @@ def visualize_stock_data(df, ticker_symbol, output_dir=None):
     plt.tight_layout()
 
     if output_dir:
-        from stock_prediction_lstm.core.utils import save_plot
+        from neural_finance.core.utils import save_plot
 
         save_plot(fig, f"{ticker_symbol}_stock_data", output_dir)
 
@@ -210,7 +210,7 @@ def visualize_prediction_comparison(
     plt.grid(True)
 
     if output_dir:
-        from stock_prediction_lstm.core.utils import save_plot
+        from neural_finance.core.utils import save_plot
 
         save_plot(fig, f"{ticker_symbol}_prediction_comparison", output_dir)
 
@@ -337,7 +337,7 @@ def visualize_future_predictions(
             )
 
     if output_dir:
-        from stock_prediction_lstm.core.utils import save_plot
+        from neural_finance.core.utils import save_plot
 
         save_plot(fig, f"{ticker_symbol}_future_predictions", output_dir)
 
@@ -380,7 +380,7 @@ def visualize_feature_importance(df, target_col="close", output_dir=None):
     ax2.grid(axis="x")
 
     if output_dir:
-        from stock_prediction_lstm.core.utils import save_plot
+        from neural_finance.core.utils import save_plot
 
         save_plot(fig, "feature_importance", output_dir)
 
@@ -454,7 +454,7 @@ def visualize_sentiment_impact(df, window=14, output_dir=None):
     plt.gcf().autofmt_xdate()
 
     if output_dir:
-        from stock_prediction_lstm.core.utils import save_plot
+        from neural_finance.core.utils import save_plot
 
         save_plot(fig, "sentiment_impact", output_dir)
 

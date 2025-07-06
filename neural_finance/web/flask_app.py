@@ -19,7 +19,7 @@ from plotly.subplots import make_subplots
 import plotly.io as pio
 import uuid
 from werkzeug.utils import secure_filename
-from stock_prediction_lstm.core.utils import create_output_directory
+from neural_finance.core.utils import create_output_directory
 
 # Set fixed random seeds for reproducibility
 import random
@@ -53,24 +53,24 @@ def emergency_evaluate_with_diagnostics(y_true, y_pred):
 
 # Import your modules (make sure these are in the same directory)
 try:
-    from stock_prediction_lstm.data.fetchers import StockDataFetcher, SentimentAnalyzer
-    from stock_prediction_lstm.data.processors import TechnicalIndicatorGenerator
+    from neural_finance.data.fetchers import StockDataFetcher, SentimentAnalyzer
+    from neural_finance.data.processors import TechnicalIndicatorGenerator
     
     # Try to import the improved model, fallback to original with fixes
     try:
-        from stock_prediction_lstm.models.improved_model import ImprovedStockModel
-        from stock_prediction_lstm.utils.emergency_fixes import emergency_evaluate_with_diagnostics
+        from neural_finance.models.improved_model import ImprovedStockModel
+        from neural_finance.utils.emergency_fixes import emergency_evaluate_with_diagnostics
         ModelClass = ImprovedStockModel
         print("🚀 Using improved model with emergency evaluation fixes")
     except ImportError:
         try:
-            from stock_prediction_lstm.models import StockSentimentModel
-            from stock_prediction_lstm.utils.model_fixes import apply_model_fixes
-            from stock_prediction_lstm.utils.emergency_fixes import emergency_evaluate_with_diagnostics
+            from neural_finance.models import StockSentimentModel
+            from neural_finance.utils.model_fixes import apply_model_fixes
+            from neural_finance.utils.emergency_fixes import emergency_evaluate_with_diagnostics
             ModelClass = apply_model_fixes(StockSentimentModel)
             print("🔧 Using original model with evaluation fixes applied")
         except ImportError:
-            from stock_prediction_lstm.models import StockSentimentModel
+            from neural_finance.models import StockSentimentModel
             ModelClass = StockSentimentModel
             print("⚠️ Using original model without fixes (using fallback evaluation)")
             

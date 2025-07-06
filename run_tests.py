@@ -66,7 +66,7 @@ def run_all_tests():
 
 def run_tests_with_coverage():
     """Run tests with coverage report."""
-    cmd = ("python -m pytest tests --cov=stock_prediction_lstm "
+    cmd = ("python -m pytest tests --cov=neural_finance "
            "--cov-report=html --cov-report=term-missing --cov-report=xml")
     return run_command(cmd, "Tests with Coverage")
 

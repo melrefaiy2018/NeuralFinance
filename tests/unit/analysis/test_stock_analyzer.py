@@ -18,7 +18,7 @@ import sys
 import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../'))
 
-from stock_prediction_lstm.analysis.stock_analyzer import StockAnalyzer
+from neural_finance.analysis.stock_analyzer import StockAnalyzer
 
 
 class TestStockAnalyzer:
@@ -93,9 +93,9 @@ class TestStockAnalyzer:
         assert isinstance(analyzer, StockAnalyzer)
         # Add any specific initialization checks based on the actual implementation
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.SentimentAnalyzer')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.ImprovedStockModel')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.SentimentAnalyzer')
+    @patch('neural_finance.analysis.stock_analyzer.ImprovedStockModel')
     def test_run_analysis_for_stock_success(self, mock_model_class, mock_sentiment_class, 
                                           mock_fetcher_class, sample_stock_dataframe, 
                                           sample_sentiment_dataframe, mock_model):
@@ -138,7 +138,7 @@ class TestStockAnalyzer:
         mock_fetcher.fetch_data.assert_called_once()
         mock_sentiment.fetch_news_sentiment.assert_called_once()
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
     def test_run_analysis_insufficient_stock_data(self, mock_fetcher_class):
         """Test analysis with insufficient stock data."""
         # Setup mock to return insufficient data
@@ -160,7 +160,7 @@ class TestStockAnalyzer:
         assert future_prices is None
         assert future_dates is None
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
     def test_run_analysis_no_stock_data(self, mock_fetcher_class):
         """Test analysis when stock data fetching fails."""
         # Setup mock to return None (failed fetch)
@@ -177,8 +177,8 @@ class TestStockAnalyzer:
         assert future_prices is None
         assert future_dates is None
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.SentimentAnalyzer')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.SentimentAnalyzer')
     def test_run_analysis_no_sentiment_data(self, mock_sentiment_class, mock_fetcher_class,
                                           sample_stock_dataframe):
         """Test analysis when sentiment data fetching fails."""
@@ -200,9 +200,9 @@ class TestStockAnalyzer:
         assert future_prices is None
         assert future_dates is None
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.SentimentAnalyzer')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.TechnicalIndicatorGenerator')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.SentimentAnalyzer')
+    @patch('neural_finance.analysis.stock_analyzer.TechnicalIndicatorGenerator')
     def test_data_preparation_pipeline(self, mock_tech_indicators, mock_sentiment_class,
                                      mock_fetcher_class, sample_stock_dataframe,
                                      sample_sentiment_dataframe):
@@ -280,8 +280,8 @@ class TestStockAnalyzer:
             assert df is None
             assert future_prices is None
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.SentimentAnalyzer')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.SentimentAnalyzer')
     def test_invalid_ticker_analysis(self, mock_sentiment_class, mock_fetcher_class):
         """Test analysis with invalid ticker."""
         # Setup mocks to simulate invalid ticker response
@@ -298,9 +298,9 @@ class TestStockAnalyzer:
         assert future_prices is None
         assert future_dates is None
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.SentimentAnalyzer')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.ImprovedStockModel')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.SentimentAnalyzer')
+    @patch('neural_finance.analysis.stock_analyzer.ImprovedStockModel')
     def test_model_training_pipeline(self, mock_model_class, mock_sentiment_class,
                                    mock_fetcher_class, sample_stock_dataframe,
                                    sample_sentiment_dataframe, mock_model):
@@ -362,8 +362,8 @@ class TestStockAnalyzer:
                 # Verify that the method was called with the correct interval
                 mock_analysis.assert_called_once_with('AAPL', '1y', interval)
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.SentimentAnalyzer')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.SentimentAnalyzer')
     def test_date_alignment_pipeline(self, mock_sentiment_class, mock_fetcher_class):
         """Test that stock and sentiment data dates are properly aligned."""
         # Create stock data with specific date range
@@ -433,8 +433,8 @@ class TestStockAnalyzer:
                     # Some errors might still be raised, which is acceptable
                     assert isinstance(e, Exception)
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.StockDataFetcher')
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.SentimentAnalyzer')
+    @patch('neural_finance.analysis.stock_analyzer.StockDataFetcher')
+    @patch('neural_finance.analysis.stock_analyzer.SentimentAnalyzer')
     def test_insufficient_merged_data(self, mock_sentiment_class, mock_fetcher_class):
         """Test analysis when merged data is insufficient."""
         # Create minimal overlapping data
@@ -493,7 +493,7 @@ class TestStockAnalyzer:
         object_growth = final_objects - initial_objects
         assert object_growth < 1000, f"Created too many objects: {object_growth}"
 
-    @patch('stock_prediction_lstm.analysis.stock_analyzer.print')
+    @patch('neural_finance.analysis.stock_analyzer.print')
     def test_logging_and_output(self, mock_print):
         """Test that appropriate logging/output is generated."""
         analyzer = StockAnalyzer()

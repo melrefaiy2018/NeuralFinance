@@ -18,7 +18,7 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../../../'))
 
 try:
-    from stock_prediction_lstm.models.improved_model import ImprovedStockModel
+    from neural_finance.models.improved_model import ImprovedStockModel
 except ImportError:
     # Skip tests if model cannot be imported (missing dependencies)
     pytest.skip("ImprovedStockModel cannot be imported", allow_module_level=True)
@@ -127,7 +127,7 @@ class TestImprovedStockModel:
             # It's acceptable if this raises an exception
             assert "insufficient" in str(e).lower() or "shape" in str(e).lower()
 
-    @patch('stock_prediction_lstm.models.improved_model.Model')
+    @patch('neural_finance.models.improved_model.Model')
     def test_build_model_architecture(self, mock_model_class):
         """Test model architecture building."""
         model = ImprovedStockModel()
@@ -172,7 +172,7 @@ class TestImprovedStockModel:
         model.build_model(market_input_dim=5, sentiment_input_dim=3)
         assert model.model is not None
 
-    @patch('stock_prediction_lstm.models.improved_model.Model')
+    @patch('neural_finance.models.improved_model.Model')
     def test_model_training(self, mock_model_class, sample_training_data):
         """Test model training process."""
         model = ImprovedStockModel(look_back=10)
@@ -199,7 +199,7 @@ class TestImprovedStockModel:
         except Exception as e:
             pytest.skip(f"Model training test failed: {e}")
 
-    @patch('stock_prediction_lstm.models.improved_model.Model')
+    @patch('neural_finance.models.improved_model.Model')
     def test_prediction_generation(self, mock_model_class, sample_training_data):
         """Test prediction generation."""
         model = ImprovedStockModel(look_back=10)

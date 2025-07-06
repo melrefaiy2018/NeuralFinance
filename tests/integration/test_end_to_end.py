@@ -17,10 +17,10 @@ import os
 import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 
-from stock_prediction_lstm.analysis.stock_analyzer import StockAnalyzer
-from stock_prediction_lstm.data.fetchers.stock_data import StockDataFetcher
-from stock_prediction_lstm.data.fetchers.sentiment_data import SentimentAnalyzer
-from stock_prediction_lstm.data.processors.technical_indicators import TechnicalIndicatorGenerator
+from neural_finance.analysis.stock_analyzer import StockAnalyzer
+from neural_finance.data.fetchers.stock_data import StockDataFetcher
+from neural_finance.data.fetchers.sentiment_data import SentimentAnalyzer
+from neural_finance.data.processors.technical_indicators import TechnicalIndicatorGenerator
 
 
 class TestEndToEndWorkflow:
@@ -95,8 +95,8 @@ class TestEndToEndWorkflow:
         
         return pd.DataFrame(data)
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.download')
-    @patch('stock_prediction_lstm.data.fetchers.sentiment_data.SentimentAnalyzer.fetch_news_sentiment')
+    @patch('neural_finance.data.fetchers.stock_data.yf.download')
+    @patch('neural_finance.data.fetchers.sentiment_data.SentimentAnalyzer.fetch_news_sentiment')
     def test_complete_analysis_workflow(self, mock_sentiment_fetch, mock_yf_download,
                                       real_stock_data, real_sentiment_data):
         """Test complete analysis from data fetch to prediction."""
@@ -138,8 +138,8 @@ class TestEndToEndWorkflow:
         yf_df.columns = ['Open', 'High', 'Low', 'Close', 'Volume']
         return yf_df
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.download')
-    @patch('stock_prediction_lstm.data.fetchers.sentiment_data.SentimentAnalyzer.fetch_news_sentiment')
+    @patch('neural_finance.data.fetchers.stock_data.yf.download')
+    @patch('neural_finance.data.fetchers.sentiment_data.SentimentAnalyzer.fetch_news_sentiment')
     def test_multi_ticker_analysis(self, mock_sentiment_fetch, mock_yf_download,
                                  real_stock_data, real_sentiment_data):
         """Test analysis of multiple tickers."""
@@ -175,8 +175,8 @@ class TestEndToEndWorkflow:
         # Here we just verify the structure works
         assert success_count >= 0
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.download')
-    @patch('stock_prediction_lstm.data.fetchers.sentiment_data.SentimentAnalyzer.fetch_news_sentiment')
+    @patch('neural_finance.data.fetchers.stock_data.yf.download')
+    @patch('neural_finance.data.fetchers.sentiment_data.SentimentAnalyzer.fetch_news_sentiment')
     def test_different_time_periods(self, mock_sentiment_fetch, mock_yf_download,
                                   real_stock_data, real_sentiment_data):
         """Test analysis with various time periods."""
@@ -207,7 +207,7 @@ class TestEndToEndWorkflow:
     def test_data_flow_integrity(self, real_stock_data, real_sentiment_data):
         """Test data consistency across pipeline stages."""
         # Test data fetcher
-        with patch('stock_prediction_lstm.data.fetchers.stock_data.yf.download') as mock_yf:
+        with patch('neural_finance.data.fetchers.stock_data.yf.download') as mock_yf:
             mock_yf.return_value = self._convert_to_yfinance_format(real_stock_data)
             
             fetcher = StockDataFetcher('AAPL', '1y', '1d')
@@ -272,7 +272,7 @@ class TestEndToEndWorkflow:
             # Verify diagnostic called analysis with correct parameters
             mock_analysis.assert_called_once_with('NVDA', '1y')
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.Ticker')
+    @patch('neural_finance.data.fetchers.stock_data.yf.Ticker')
     def test_error_recovery_workflow(self, mock_ticker_class):
         """Test system behavior under various error conditions."""
         analyzer = StockAnalyzer()
@@ -331,8 +331,8 @@ class TestEndToEndWorkflow:
         object_growth = final_objects - initial_objects
         assert object_growth < 5000, f"Excessive memory usage: {object_growth} new objects"
 
-    @patch('stock_prediction_lstm.data.fetchers.stock_data.yf.download')
-    @patch('stock_prediction_lstm.data.fetchers.sentiment_data.SentimentAnalyzer.fetch_news_sentiment')
+    @patch('neural_finance.data.fetchers.stock_data.yf.download')
+    @patch('neural_finance.data.fetchers.sentiment_data.SentimentAnalyzer.fetch_news_sentiment')
     def test_data_quality_validation(self, mock_sentiment_fetch, mock_yf_download,
                                    real_stock_data, real_sentiment_data):
         """Test data quality validation throughout the pipeline."""
@@ -404,7 +404,7 @@ class TestWorkflowIntegration:
     def test_component_interface_compatibility(self):
         """Test that component interfaces are compatible."""
         # Test that StockDataFetcher output is compatible with TechnicalIndicatorGenerator
-        with patch('stock_prediction_lstm.data.fetchers.stock_data.yf.download') as mock_yf:
+        with patch('neural_finance.data.fetchers.stock_data.yf.download') as mock_yf:
             # Create mock yfinance data
             dates = pd.date_range('2023-01-01', periods=30, freq='D')
             mock_data = pd.DataFrame({
