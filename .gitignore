@@ -7,3 +7,4 @@ examples/demo/calculations
 sentiment_cache
 scratch
 calculations
+*.log
