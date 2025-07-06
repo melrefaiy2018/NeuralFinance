@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Enhanced example script showing how to use the stock_prediction_lstm package programmatically.
+Enhanced example script showing how to use the neural_finance package programmatically.
 
 This script creates a dedicated calculations directory and saves all outputs there
 for better organization and to avoid cluttering the file system.
@@ -12,8 +12,8 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 
-from stock_prediction_lstm.analysis import StockAnalyzer
-from stock_prediction_lstm.config import Config
+from neural_finance.analysis import StockAnalyzer
+from neural_finance.config import Config
 
 
 def create_calculations_directory():

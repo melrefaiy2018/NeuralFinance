@@ -1,337 +1,160 @@
-# Stock Prediction LSTM
+# 📈 Neural Finance: : Stock Prediction with LSTM
+
+<div align="center">
+  <img src="neural_finance/utils/logo.png" alt="Neural Finance Logo" width="600"/>
+</div>
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)]()
 
-A comprehensive stock prediction system using LSTM neural networks with sentiment analysis and technical indicators. This package provides a complete solution for stock price prediction, combining deep learning models with real-time sentiment analysis and technical analysis indicators.
+---
 
-## Features
+## 📚 Table of Contents
 
-- **LSTM Neural Networks**: Advanced deep learning models for time series prediction
-- **Sentiment Analysis**: Real-time sentiment analysis using various APIs and fallback methods
-- **Technical Indicators**: Comprehensive technical analysis indicators (RSI, MACD, Bollinger Bands, etc.)
-- **Visualization**: Rich visualizations for stock data, predictions, and analysis
-- **Web Interface**: Flask-based web interface for interactive analysis
-- **CLI Tool**: Command-line interface for batch processing and automation
-- **Flexible API**: Easy-to-use Python API for integration into existing workflows
+- [Abstract](#abstract)
+- [Introduction](#introduction)
+- [Key Scientific Contributions](#key-scientific-contributions)
+- [Framework Architecture Diagram](#framework-architecture-diagram)
+- [Installation](#installation)
+- [Core Functionality](#core-functionality)
+- [Model Configuration Example](#model-configuration-example)
+- [Validation Metrics](#validation-metrics)
+- [Limitations](#limitations)
+- [System Requirements](#system-requirements)
+- [Legal Disclaimer](#legal-disclaimer)
+- [Citation](#citation)
+
+---
+
+## Abstract
+
+**Neural Finance** is a research-oriented deep learning framework for predictive modeling of financial time series. The framework integrates Long Short-Term Memory (LSTM) neural networks with technical indicators and sentiment analysis pipelines, enabling comprehensive temporal modeling of asset prices. It aims to address non-stationary characteristics of financial data, multi-scale temporal dependencies, and the integration of qualitative sentiment information, providing a platform for rigorous scientific experimentation and evaluation.
+
+---
+
+## Introduction
+
+Predicting financial time series remains a fundamentally challenging task due to the stochastic nature of markets, the influence of exogenous events, and inherent noise. Neural Finance was designed to systematically study the efficacy of multi-modal architectures that combine quantitative price-based features with qualitative sentiment signals extracted from external sources. By implementing a modular dual-branch LSTM architecture, the framework facilitates systematic investigation of hypotheses regarding temporal patterns, market sentiment integration, and the predictive utility of technical indicators.
+
+---
+
+## Key Scientific Contributions
+
+* **Hybrid LSTM Architecture**: Dual-branch architecture explicitly separates market data and sentiment data processing before feature fusion, allowing independent and joint hypothesis testing.
+* **Adaptive Indicator Framework**: Parameterized computation of technical indicators such as RSI, MACD, MA, EMA, and ROC supports reproducible experimentation with different window sizes and indicator sets.
+* **Sentiment Integration Pipeline**: Modular sentiment analysis submodule facilitates controlled integration of external textual signals, enabling ablation studies on the impact of sentiment on predictive performance.
+* **Validation Protocols**: Incorporates walk-forward validation, directional accuracy, and error metrics (RMSE, MAE) to support statistically rigorous performance evaluation.
+
+---
+
+## Framework Architecture Diagram
+
+```mermaid
+graph TD
+  A[Historical Price & Sentiment Data] --> B[Preprocessing: Cleaning + Technical Indicators]
+  B --> C1[Market Data LSTM Branch]
+  B --> C2[Sentiment Dense Branch]
+  C1 --> D[Fusion Layer]
+  C2 --> D
+  D --> E[Output Layer: Predicted Prices]
+  E --> F[Visualization: Time Series + Metrics]
+```
+
+---
 
 ## Installation
 
-### From PyPI (Recommended)
-
 ```bash
-pip install stock-prediction-lstm
-```
-
-### From Source
-
-```bash
-git clone https://github.com/melrefaiy2018/stock_prediction_lstm.git
-cd stock_prediction_lstm
+git clone https://github.com/melrefaiy2018/neural_finance.git
+cd neural_finance
 pip install -e .
+pip install -r requirements.txt
 ```
 
-### Development Installation
+---
 
-```bash
-git clone https://github.com/melrefaiy2018/stock_prediction_lstm.git
-cd stock_prediction_lstm
-pip install -e ".[dev]"
-```
+## Core Functionality
 
-## Quick Start
+* **Data Acquisition**: Retrieve historical price data via yfinance API.
+* **Technical Indicators**: Compute RSI, MACD, EMA, MA, and ROC with adjustable parameters.
+* **LSTM Modeling**: Train and evaluate models with configurable hyperparameters.
+* **Sentiment Analysis Framework**: Process external news or social media sentiment for integration into the predictive model.
+* **Visualization**: Generate time series plots of true vs predicted prices and technical indicator overlays.
+* **Portfolio Analysis**: Evaluate expected returns, volatility, and Sharpe ratios.
+* **Web Interface**: Interactive Flask-based application for running analyses without direct scripting.
 
-### Basic Usage
+---
+
+## Model Configuration Example
 
 ```python
-from stock_prediction_lstm import StockAnalyzer
+from neural_finance.config import ModelConfig
+from neural_finance import StockAnalyzer
 
-# Create analyzer instance
-analyzer = StockAnalyzer()
-
-# Run analysis for a stock
-model, df, future_prices, future_dates = analyzer.run_analysis_for_stock('AAPL', '1y', '1d')
-
-# Print future predictions
-if future_prices is not None:
-    print("Future price predictions:")
-    for i, price in enumerate(future_prices):
-        print(f"Day {i+1}: ${price:.2f}")
-```
-
-### CLI Usage
-
-```bash
-# Run analysis for a stock
-stock-predict analyze --ticker AAPL --period 1y --interval 1d
-
-# Run diagnostic
-stock-predict diagnostic --ticker NVDA --period 6mo
-```
-
-### Web Interface
-
-```bash
-# Launch Flask web interface
-python stock_prediction_lstm/web/flask_app.py
-```
-
-## API Key Setup (Optional but Recommended)
-
-The system uses various APIs for real-time sentiment analysis. While the model works without them using synthetic sentiment data, configuring real API keys provides better predictions.
-
-### Manual Setup
-
-1. **Get free API keys** from providers like Alpha Vantage, MarketAux, Finnhub, NewsAPI, Polygon.io, and Reddit API.
-   - Alpha Vantage: https://www.alphavantage.co/support/#api-key
-
-2. **Configure the keys**:
-   - Navigate to: `stock_prediction_lstm/config/keys/`
-   - Edit `api_keys.py` (or `alternative_api_keys.py` for other sources)
-   - Replace `"YOUR_API_KEY_HERE"` with your actual API key for each service.
-
-3. **Test your setup**:
-   ```bash
-   python examples/demo/real_demo.py --ticker AAPL
-   ```
-
-## Configuration
-
-The package supports various configuration options:
-
-### Model Configuration
-
-```python
-from stock_prediction_lstm import StockAnalyzer
-
-analyzer = StockAnalyzer(
-    lstm_units=50,
+config = ModelConfig(
+    lstm_units=128,
     dropout_rate=0.2,
-    epochs=50,
+    epochs=100,
     batch_size=32,
-    sequence_length=60
-)
-```
-
-### Data Configuration
-
-```python
-# Configure data fetching
-analyzer.configure_data(
-    technical_indicators=['RSI', 'MACD', 'BB', 'SMA', 'EMA'],
-    sentiment_analysis=True,
-    volume_analysis=True
-)
-```
-
-## Advanced Usage
-
-### Custom Model Training
-
-```python
-from stock_prediction_lstm import StockSentimentModel
-from stock_prediction_lstm.data import StockDataFetcher
-
-# Fetch data
-fetcher = StockDataFetcher()
-data = fetcher.fetch_data('AAPL', '2y', '1d')
-
-# Create and train model
-model = StockSentimentModel()
-# Assuming train_model and predict_future_prices are methods of StockSentimentModel
-# You might need to adapt this based on the actual implementation
-# trained_model = model.train_model(data) 
-# predictions = model.predict_future_prices(data, days=30)
-```
-
-### Batch Processing
-
-```python
-from stock_prediction_lstm import StockAnalyzer
-
-analyzer = StockAnalyzer()
-stocks = ['AAPL', 'GOOGL', 'MSFT', 'TSLA']
-
-results = {}
-for stock in stocks:
-    model, df, future_prices, future_dates = analyzer.run_analysis_for_stock(stock, '1y', '1d')
-    results[stock] = {
-        'model': model,
-        'predictions': future_prices,
-        'dates': future_dates
-    }
-```
-
-### Visualization
-
-```python
-from stock_prediction_lstm.visualization import (
-    visualize_stock_data,
-    visualize_prediction_comparison,
-    visualize_future_predictions,
-    visualize_feature_importance,
-    visualize_sentiment_impact
+    sequence_length=60,
+    technical_indicators=['RSI', 'MACD'],
+    prediction_horizon=5
 )
 
-# Assuming 'df' and 'model' are available from a StockAnalyzer run
-# visualize_stock_data(df, 'AAPL')
-
-# Assuming 'actual_prices' and 'predicted_prices' are available
-# visualize_prediction_comparison(model, X_market_test, X_sentiment_test, y_test, 'AAPL')
-
-# Assuming 'future_prices', 'future_dates', and 'df' are available
-# visualize_future_predictions(future_prices, future_dates, df, 'AAPL')
+analyzer = StockAnalyzer(config=config)
 ```
 
-## API Reference
+---
 
-### Core Classes
+## Validation Metrics
 
-#### StockAnalyzer
-Main class for stock analysis and prediction.
+Model performance is quantitatively evaluated using:
 
-**Methods:**
-- `run_analysis_for_stock(ticker, period, interval)`: Complete analysis pipeline
-- `self_diagnostic(ticker, period)`: Run diagnostic checks
+* Root Mean Square Error (RMSE)
+* Mean Absolute Error (MAE)
+* Directional Accuracy (percentage of correct movement predictions)
+* Sharpe Ratio (portfolio analysis)
 
-#### StockDataFetcher
-Handles data fetching from various sources.
+Walk-forward validation is implemented to mitigate look-ahead bias and provide a robust estimate of model generalization on unseen data.
 
-**Methods:**
-- `fetch_data(ticker, period, interval)`: Fetch stock price data
+---
 
-#### SentimentAnalyzer
-Handles sentiment data fetching and processing.
+## Limitations
 
-**Methods:**
-- `fetch_news_sentiment(start_date, end_date)`: Fetch news sentiment data
+* **Sentiment Coverage**: Current implementation supports basic sentiment integration; real-time sentiment ingestion and advanced NLP pipelines remain in development.
+* **Backtesting Framework**: Historical strategy simulation is partially implemented, with plans for advanced event-driven backtesting.
+* **API Constraints**: Free-tier data sources (e.g., yfinance) impose rate limits and may introduce data latency.
 
-#### StockSentimentModel
-LSTM model with sentiment analysis integration.
+---
 
-**Methods:**
-- `prepare_data(df, target_col)`: Prepares data for the model
-- `build_model(market_input_dim, sentiment_input_dim)`: Builds the LSTM model
-- `fit(X_market, X_sentiment, y, ...)`: Fits the model to data
-- `predict(X_market, X_sentiment)`: Makes predictions
-- `predict_next_days(latest_market_data, latest_sentiment_data, days)`: Predicts future prices
-- `evaluate(y_true, y_pred)`: Evaluates model performance
+## System Requirements
 
-### Utility Functions
+* Minimum: 8GB RAM, multi-core CPU.
+* Recommended: 16GB RAM.
+* Software: Python 3.8+, TensorFlow 2.x, pandas, numpy, yfinance, scikit-learn, Flask.
 
-#### Technical Indicators (via `TechnicalIndicatorGenerator` class)
-- `add_technical_indicators(df, price_col, volume_col)`: Adds common technical indicators to a DataFrame
+---
 
-#### Plotting Functions (via `stock_prediction_lstm.visualization` module)
-- `visualize_stock_data(df, ticker_symbol, output_dir)`: Visualizes stock data
-- `visualize_prediction_comparison(model, X_market_test, X_sentiment_test, y_test, ticker_symbol, output_dir)`: Visualizes prediction vs actual
-- `visualize_future_predictions(future_prices, future_dates, df, ticker_symbol, output_dir)`: Visualizes future predictions
-- `visualize_feature_importance(df, target_col, output_dir)`: Visualizes feature importance
-- `visualize_sentiment_impact(df, window, output_dir)`: Visualizes sentiment impact
+## Legal Disclaimer
 
-## Examples
+This software is provided for academic research and educational purposes only. It does not constitute investment advice or recommendations. Users are solely responsible for compliance with applicable regulations and for any outcomes resulting from use of the software.
 
-The `examples/` directory contains various usage examples:
-
-- **basic_usage.py**: Basic usage examples
-- **advanced_analysis.py**: Advanced analysis with custom parameters
-- **batch_processing.py**: Process multiple stocks
-- **demo/real_demo.py**: Complete demonstration script
-
-## Testing
-
-Run the test suite:
-
-```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_analysis.py
-```
-
-## Performance Considerations
-
-- **Memory Usage**: LSTM models can be memory-intensive. Consider reducing batch size or sequence length for large datasets.
-- **Training Time**: Model training time depends on data size and complexity. Use GPU acceleration when available.
-- **API Limits**: External APIs have rate limits. Consider caching results for frequently accessed data.
-
-## Troubleshooting
-
-### Common Issues
-
-1. **TensorFlow Installation**: Ensure TensorFlow is properly installed for your system
-2. **API Key Issues**: Verify your API keys are correctly configured
-3. **Data Fetching**: Check internet connection and ticker symbol validity
-4. **Memory Errors**: Reduce batch size or sequence length for large datasets
-
-### Debug Mode
-
-Enable debug mode for detailed logging:
-
-```python
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
-# For StockAnalyzer, you might need to pass a debug flag or configure logging directly
-# analyzer = StockAnalyzer(debug=True)
-```
-
-## Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Setup
-
-```bash
-git clone https://github.com/melrefaiy2018/stock_prediction_lstm.git
-cd stock_prediction_lstm
-pip install -e ".[dev]"
-pre-commit install
-```
-
-### Running Tests
-
-```bash
-pytest
-mypy stock_prediction_lstm/
-```
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Changelog
-
-### Version 1.0.0 (Alpha Release)
-- Initial alpha release
-- Implemented Flask-based web interface
-- Enhanced sentiment data fetching with multiple fallbacks
-- Removed hardcoded API keys and improved API key management
-- Improved docstring coverage across the codebase
-- Cleaned up unused and temporary files
-- Updated documentation (README, PRD)
-
-## Support
-
-- **Documentation**: [Full documentation](https://melrefaiy2018.github.io/stock_prediction_lstm/) (Coming Soon)
-- **Issues**: [GitHub Issues](https://github.com/melrefaiy2018/stock_prediction_lstm/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/melrefaiy2018/stock_prediction_lstm/discussions)
+---
 
 ## Citation
 
-If you use this package in your research, please cite:
-
 ```bibtex
-@software{stock_prediction_lstm,
-  title={Stock Prediction LSTM: A Comprehensive Stock Prediction System},
-  author={Mohamed A.A. Elrefaiy},
+@software{neural_finance,
+  title={Neural Finance: A Scientific Framework for Financial Time Series Prediction},
+  author={Elrefaiy, Mohamed A.A.},
   year={2025},
-  url={https://github.com/melrefaiy2018/stock_prediction_lstm}
+  url={https://github.com/melrefaiy2018/neural_finance},
+  version={1.0.0}
 }
 ```
 
-## Disclaimer
+---
 
-This software is for educational and research purposes only. Stock predictions are inherently uncertain and should not be used as the sole basis for investment decisions. Always consult with qualified financial advisors before making investment decisions.
+Maintainer: Mohamed A.A. Elrefaiy
+Contact: [moerelfaiy@gmail.com](mailto:moerelfaiy@gmail.com)
+GitHub: [Neural Finance Repository](https://github.com/melrefaiy2018/neural_finance)

@@ -19,13 +19,13 @@ import pandas as pd
 import numpy as np
 
 try:
-    from stock_prediction_lstm.analysis import StockAnalyzer
-    from stock_prediction_lstm.models.improved_model import ImprovedStockModel
+    from neural_finance.analysis import StockAnalyzer
+    from neural_finance.models.improved_model import ImprovedStockModel
 
-    print("✅ Successfully imported stock_prediction_lstm package")
+    print("✅ Successfully imported neural_finance package")
 except ImportError as e:
     print(f"❌ Error importing package: {e}")
-    print("Please ensure the stock_prediction_lstm package is installed:")
+    print("Please ensure the neural_finance package is installed:")
     print("Run: pip install -e .")
     sys.exit(1)
 
@@ -40,7 +40,7 @@ class DemoDataGenerator:
 
         # Validate API key configuration
         try:
-            from stock_prediction_lstm.config.settings import Config
+            from neural_finance.config.settings import Config
 
             if (
                 not Config.ALPHA_VANTAGE_API_KEY
@@ -53,7 +53,7 @@ class DemoDataGenerator:
                 print("")
                 print("To use real sentiment data:")
                 print("1. Get a free API key at: https://www.alphavantage.co/support/#api-key")
-                print("2. Navigate to: stock_prediction_lstm/config/keys/")
+                print("2. Navigate to: neural_finance/config/keys/")
                 print("3. Edit api_keys.py and replace 'YOUR_API_KEY_HERE' with your key")
                 print("=" * 60)
         except Exception as e:
