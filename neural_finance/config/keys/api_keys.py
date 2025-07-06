@@ -1,0 +1,22 @@
+"""
+API Keys Configuration
+
+This file contains API keys for the stock prediction system.
+Please replace the placeholder values with your actual API keys.
+
+To get your free Alpha Vantage API key:
+1. Visit: https://www.alphavantage.co/support/#api-key
+2. Sign up for a free account (takes less than 20 seconds)
+3. Copy your API key and paste it below
+4. Save this file
+
+Your API key should look like: "ABCD1234EFGH5678"
+"""
+
+# Alpha Vantage API Configuration
+# Get your free key at: https://www.alphavantage.co/support/#api-key
+ALPHA_VANTAGE_API_KEY = "YOUR_API_KEY_HERE"
+
+# Future API keys can be added here:
+# EXAMPLE_API_KEY = "your_key_here"
+# ANOTHER_SERVICE_KEY = "another_key_here"
