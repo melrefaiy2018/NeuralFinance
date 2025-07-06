@@ -8,7 +8,7 @@ building and training LSTM models for stock price prediction, and visualizing re
 from .data.fetchers import StockDataFetcher, SentimentAnalyzer
 from .data.processors import TechnicalIndicatorGenerator
 from .models import StockSentimentModel
-from .analysis import StockAnalyzer, PortfolioAnalyzer
+from .analysis import StockAnalyzer, PortfolioAnalyzer, RealTimePredictor
 from .visualization import (
     visualize_stock_data,
     visualize_prediction_comparison,
@@ -25,6 +25,7 @@ __all__ = [
     "StockSentimentModel",
     "StockAnalyzer",
     "PortfolioAnalyzer",
+    "RealTimePredictor",
     "visualize_stock_data",
     "visualize_prediction_comparison",
     "visualize_future_predictions",
