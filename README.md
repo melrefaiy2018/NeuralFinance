@@ -9,6 +9,23 @@
 
 ---
 
+## 📚 Table of Contents
+
+- [Abstract](#abstract)
+- [Introduction](#introduction)
+- [Key Scientific Contributions](#key-scientific-contributions)
+- [Framework Architecture Diagram](#framework-architecture-diagram)
+- [Installation](#installation)
+- [Core Functionality](#core-functionality)
+- [Model Configuration Example](#model-configuration-example)
+- [Validation Metrics](#validation-metrics)
+- [Limitations](#limitations)
+- [System Requirements](#system-requirements)
+- [Legal Disclaimer](#legal-disclaimer)
+- [Citation](#citation)
+
+---
+
 ## Abstract
 
 **Neural Finance** is a research-oriented deep learning framework for predictive modeling of financial time series. The framework integrates Long Short-Term Memory (LSTM) neural networks with technical indicators and sentiment analysis pipelines, enabling comprehensive temporal modeling of asset prices. It aims to address non-stationary characteristics of financial data, multi-scale temporal dependencies, and the integration of qualitative sentiment information, providing a platform for rigorous scientific experimentation and evaluation.
