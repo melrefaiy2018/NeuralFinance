@@ -1,2 +1,0 @@
-[console_scripts]
-neural-finance = neural_finance.cli.main:cli
