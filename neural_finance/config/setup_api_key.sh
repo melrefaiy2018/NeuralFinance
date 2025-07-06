@@ -1,14 +1,14 @@
 #!/bin/bash
 
-# Stock Prediction LSTM - Quick API Key Setup
+# neural_finance - Quick API Key Setup
 # This script helps configure your Alpha Vantage API key
 
-echo "🔑 Stock Prediction LSTM - Quick Setup"
+echo "🔑 neural_finance - Quick Setup"
 echo "=================================="
 
 # Get the script directory
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-KEYS_DIR="$SCRIPT_DIR/stock_prediction_lstm/config/keys"
+KEYS_DIR="$SCRIPT_DIR/neural_finance/config/keys"
 API_KEYS_FILE="$KEYS_DIR/api_keys.py"
 
 echo "📁 Keys directory: $KEYS_DIR"

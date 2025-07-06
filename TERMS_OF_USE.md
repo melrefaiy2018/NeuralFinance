@@ -1,6 +1,6 @@
 # TERMS OF USE
 
-## Stock Prediction LSTM Software - Terms of Use
+## Neural Finance Software - Terms of Use
 
 **Last Updated**: July 2025  
 **Version**: 1.0
@@ -9,7 +9,7 @@
 
 ## 1. Acceptance of Terms
 
-By downloading, installing, accessing, or using the Stock Prediction LSTM software ("Software"), you ("User" or "you") agree to be bound by these Terms of Use ("Terms"). If you do not agree to these Terms, do not use the Software.
+By downloading, installing, accessing, or using the Neural Finance software ("Software"), you ("User" or "you") agree to be bound by these Terms of Use ("Terms"). If you do not agree to these Terms, do not use the Software.
 
 ## 2. License and Permitted Use
 
@@ -285,8 +285,8 @@ BY USING THIS SOFTWARE, YOU ACKNOWLEDGE THAT YOU HAVE READ, UNDERSTOOD, AND AGRE
 
 ---
 
-**Stock Prediction LSTM Project**  
+**Neural Finance Project**  
 **MIT License**  
-**https://github.com/melrefaiy2018/stock_prediction_lstm**
+**https://github.com/melrefaiy2018/neural_finance**
 
 *These Terms of Use do not constitute legal advice. Consult with qualified attorneys for specific legal guidance.*

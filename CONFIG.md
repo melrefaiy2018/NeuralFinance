@@ -1,6 +1,6 @@
 # Configuration Guide
 
-This guide explains how to configure the Stock Prediction LSTM package for optimal performance.
+This guide explains how to configure the Neural Finance package for optimal performance.
 
 ## Overview
 
@@ -45,7 +45,7 @@ nano config/keys/api_keys.py
 ### Method 3: Runtime Configuration
 
 ```python
-from stock_prediction_lstm.config import Config
+from neural_finance.config import Config
 
 # Set API key programmatically
 Config.ALPHA_VANTAGE_API_KEY = "your_api_key_here"
@@ -63,7 +63,7 @@ Config.ALPHA_VANTAGE_API_KEY = "your_api_key_here"
 ### Model Configuration
 
 ```python
-from stock_prediction_lstm.config import Config
+from neural_finance.config import Config
 
 # LSTM Model Parameters
 Config.DEFAULT_LSTM_UNITS = 50          # Number of LSTM units

@@ -1,36 +1,36 @@
-# Stock Prediction LSTM - Comprehensive Unit Testing Agent Instructions
+# neural_finance - Comprehensive Unit Testing Agent Instructions
 
 ## Overview
 
-This document provides detailed instructions for implementing comprehensive unit tests for the Stock Prediction LSTM package. The package consists of multiple modules for stock data fetching, sentiment analysis, LSTM model training, visualization, and command-line interfaces.
+This document provides detailed instructions for implementing comprehensive unit tests for the Neural Finance package. The package consists of multiple modules for stock data fetching, sentiment analysis, LSTM model training, visualization, and command-line interfaces.
 
 ## Package Structure Analysis
 
 Based on the codebase analysis, the following key modules require testing:
 
 ### Core Modules
-1. **Data Fetchers** (`stock_prediction_lstm/data/fetchers/`)
+1. **Data Fetchers** (`neural_finance/data/fetchers/`)
    - `StockDataFetcher` - Fetches stock price data from Yahoo Finance
    - `SentimentAnalyzer` - Fetches and processes sentiment data
    - `AlternativeSentimentSources` - Alternative sentiment data sources
 
-2. **Data Processors** (`stock_prediction_lstm/data/processors/`)
+2. **Data Processors** (`neural_finance/data/processors/`)
    - `TechnicalIndicatorGenerator` - Calculates technical indicators
 
-3. **Models** (`stock_prediction_lstm/models/`)
+3. **Models** (`neural_finance/models/`)
    - `ImprovedStockModel` - Core LSTM model for predictions
    - `StockSentimentModel` - LSTM with sentiment integration
 
-4. **Analysis** (`stock_prediction_lstm/analysis/`)
+4. **Analysis** (`neural_finance/analysis/`)
    - `StockAnalyzer` - Main analysis orchestrator
 
-5. **Visualization** (`stock_prediction_lstm/visualization/`)
+5. **Visualization** (`neural_finance/visualization/`)
    - `plotters` - Plotting functions for visualization
 
-6. **CLI** (`stock_prediction_lstm/cli/`)
+6. **CLI** (`neural_finance/cli/`)
    - `main` - Command-line interface
 
-7. **Storage & Utilities** (`stock_prediction_lstm/data/storage/`, `stock_prediction_lstm/core/`)
+7. **Storage & Utilities** (`neural_finance/data/storage/`, `neural_finance/core/`)
    - Cache managers, data managers, utilities
 
 ## Testing Framework Setup
@@ -440,7 +440,7 @@ markers =
 addopts = 
     --strict-markers
     --strict-config
-    --cov=stock_prediction_lstm
+    --cov=neural_finance
     --cov-report=html
     --cov-report=term-missing
     --cov-fail-under=85
@@ -518,4 +518,4 @@ jobs:
 
 ---
 
-This comprehensive testing plan ensures robust, reliable, and maintainable code quality for the Stock Prediction LSTM package. Follow these instructions to implement a complete test suite that covers normal use cases, edge cases, and provides confidence in the system's reliability.
+This comprehensive testing plan ensures robust, reliable, and maintainable code quality for the Neural Finance package. Follow these instructions to implement a complete test suite that covers normal use cases, edge cases, and provides confidence in the system's reliability.

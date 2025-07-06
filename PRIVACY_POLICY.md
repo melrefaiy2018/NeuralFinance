@@ -1,13 +1,13 @@
 # PRIVACY POLICY
 
-## Stock Prediction LSTM Software - Privacy Policy
+## Neural Finance Software - Privacy Policy
 
 **Last Updated**: July 2025  
 **Version**: 1.0
 
 ## 1. Introduction
 
-This Privacy Policy describes how the Stock Prediction LSTM software ("Software," "we," "us," or "our") handles data and privacy when you use our open-source financial prediction framework.
+This Privacy Policy describes how the Neural Finance software ("Software," "we," "us," or "our") handles data and privacy when you use our open-source financial prediction framework.
 
 **Important Note**: This is an open-source software package that you run locally on your own systems. We do not operate a service that collects your data. However, this policy explains data handling practices and your responsibilities when using the Software.
 
@@ -317,8 +317,8 @@ By using this Software, you acknowledge that you have read, understood, and agre
 
 ---
 
-**Stock Prediction LSTM Project**  
+**Neural Finance Project**  
 **Open Source Software**  
-**https://github.com/melrefaiy2018/stock_prediction_lstm**
+**https://github.com/melrefaiy2018/neural_finance**
 
 *This Privacy Policy does not constitute legal advice. Consult with qualified privacy professionals for specific compliance guidance.*

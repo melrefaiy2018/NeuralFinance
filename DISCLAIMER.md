@@ -8,7 +8,7 @@
 
 ### NO FINANCIAL ADVICE
 
-This software ("Stock Prediction LSTM") is provided strictly for **educational, research, and informational purposes only**. It is **NOT** intended to provide financial, investment, trading, or any other type of professional advice.
+This software ("Neural Finance") is provided strictly for **educational, research, and informational purposes only**. It is **NOT** intended to provide financial, investment, trading, or any other type of professional advice.
 
 **The software does NOT constitute:**
 - Financial advice or investment recommendations

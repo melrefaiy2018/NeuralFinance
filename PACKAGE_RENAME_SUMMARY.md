@@ -76,27 +76,38 @@ Commands:
 
 ## File Summary
 
-### Updated Files (25+ files)
+### Updated Files (30+ files)
 1. **setup.py** - Package configuration
 2. **pyproject.toml** - Modern Python packaging
 3. **MANIFEST.in** - Package data inclusion
 4. **README.md** - Complete documentation update
 5. **run_tests.py** - Test coverage configuration
-6. **neural_finance/__init__.py** - Main package init
-7. **neural_finance/__version__.py** - Version info
-8. **neural_finance/cli/main.py** - CLI entry point
-9. **neural_finance/cli/__init__.py** - CLI module
-10. **neural_finance/core/exceptions.py** - Custom exceptions
-11. **neural_finance/config/__init__.py** - Configuration module
-12. **neural_finance/config/settings.py** - Settings class
-13. **neural_finance/data/__init__.py** - Data module
-14. **neural_finance/data/storage/__init__.py** - Storage module
-15. **neural_finance/models/__init__.py** - Models module
-16. **neural_finance/analysis/__init__.py** - Analysis module
-17. **neural_finance/visualization/__init__.py** - Visualization module
-18. **examples/basic_usage.py** - Basic example
-19. **examples/enhanced_usage.py** - Enhanced example
-20. **All test files** - Updated imports and references
+6. **PRIVACY_POLICY.md** - Legal document updates
+7. **TERMS_OF_USE.md** - Legal document updates
+8. **DISCLAIMER.md** - Legal document updates
+9. **CONTRIBUTING.md** - Contribution guidelines
+10. **CONFIG.md** - Configuration documentation
+11. **.gitignore** - Git ignore patterns
+12. **coverage.xml** - Test coverage configuration
+13. **agent.md** - Agent documentation
+14. **neural_finance/__init__.py** - Main package init
+15. **neural_finance/__version__.py** - Version info
+16. **neural_finance/cli/main.py** - CLI entry point
+17. **neural_finance/cli/__init__.py** - CLI module
+18. **neural_finance/core/exceptions.py** - Custom exceptions
+19. **neural_finance/config/__init__.py** - Configuration module
+20. **neural_finance/config/settings.py** - Settings class
+21. **neural_finance/config/setup_api_key.sh** - API key setup script
+22. **neural_finance/data/__init__.py** - Data module
+23. **neural_finance/data/storage/__init__.py** - Storage module
+24. **neural_finance/models/__init__.py** - Models module
+25. **neural_finance/analysis/__init__.py** - Analysis module
+26. **neural_finance/visualization/__init__.py** - Visualization module
+27. **neural_finance/web/static/js/debug-progress.js** - Web interface
+28. **examples/basic_usage.py** - Basic example
+29. **examples/enhanced_usage.py** - Enhanced example
+30. **All test files** - Updated imports and references
+31. **All scratch files** - Updated development files
 
 ### Renamed Directories
 - `stock_prediction_lstm/` → `neural_finance/`
