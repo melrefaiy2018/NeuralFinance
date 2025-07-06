@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Example script showing how to use the stock_prediction_lstm package for advanced analysis
+Example script showing how to use the neural_finance package for advanced analysis
 with organized output directories.
 """
 
@@ -8,9 +8,9 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from stock_prediction_lstm.analysis import StockAnalyzer
-from stock_prediction_lstm.visualization import visualize_stock_data, visualize_future_predictions
-from stock_prediction_lstm.config import Config
+from neural_finance.analysis import StockAnalyzer
+from neural_finance.visualization import visualize_stock_data, visualize_future_predictions
+from neural_finance.config import Config
 
 
 def setup_advanced_calculations_directory():

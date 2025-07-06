@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Setup script for stock_prediction_lstm package."""
+"""Setup script for neural_finance package."""
 
 from setuptools import setup, find_packages
 import os
@@ -8,7 +8,7 @@ import os
 # Read version from __version__.py
 def read_version():
     version_file = os.path.join(
-        os.path.dirname(__file__), "stock_prediction_lstm", "__version__.py"
+        os.path.dirname(__file__), "neural_finance", "__version__.py"
     )
     with open(version_file, "r") as f:
         exec(f.read())
@@ -50,19 +50,19 @@ def read_dev_requirements():
 
 
 setup(
-    name="stock-prediction-lstm",
+    name="neural-finance",
     version=read_version(),
     author="Mohamed",
     author_email="mohamed@example.com",  # Replace with your actual email
     description="A comprehensive stock prediction system using LSTM neural networks with sentiment analysis and technical indicators",
     long_description=read_long_description(),
     long_description_content_type="text/markdown",
-    url="https://github.com/yourusername/stock_prediction_lstm",  # Replace with your actual repository
+    url="https://github.com/yourusername/neural_finance",  # Replace with your actual repository
     project_urls={
-        "Bug Tracker": "https://github.com/yourusername/stock_prediction_lstm/issues",
-        "Documentation": "https://yourusername.github.io/stock_prediction_lstm/",
-        "Source Code": "https://github.com/yourusername/stock_prediction_lstm",
-        "Changelog": "https://github.com/yourusername/stock_prediction_lstm/blob/main/CHANGELOG.md",
+        "Bug Tracker": "https://github.com/yourusername/neural_finance/issues",
+        "Documentation": "https://yourusername.github.io/neural_finance/",
+        "Source Code": "https://github.com/yourusername/neural_finance",
+        "Changelog": "https://github.com/yourusername/neural_finance/blob/main/CHANGELOG.md",
     },
     packages=find_packages(exclude=["tests*", "examples*", "docs*"]),
     classifiers=[
@@ -114,7 +114,7 @@ setup(
     },
     include_package_data=True,
     package_data={
-        "stock_prediction_lstm": [
+        "neural_finance": [
             "config/**/*",
             "data_cache/**/*",
             "web/static/**/*",
@@ -123,7 +123,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "stock-predict=stock_prediction_lstm.cli.main:main",
+            "neural-finance=neural_finance.cli.main:main",
         ],
     },
     zip_safe=False,
@@ -136,7 +136,7 @@ setup(
         "pytest-mock>=3.10.0",
     ],
     # Additional metadata for PyPI
-    download_url="https://github.com/yourusername/stock_prediction_lstm/archive/v1.0.0.tar.gz",
+    download_url="https://github.com/yourusername/neural_finance/archive/v1.0.0.tar.gz",
     # Ensure wheel is built properly
     options={
         "bdist_wheel": {
