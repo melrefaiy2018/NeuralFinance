@@ -30,8 +30,9 @@ The framework addresses key challenges in financial prediction including: (1) no
 - [Troubleshooting](#troubleshooting)
 - [Contributing](#contributing)
 - [Citation](#citation)
+- [Legal Information](#legal-information)
 - [License](#license)
-- [Disclaimer](#disclaimer)
+- [Support](#support)
 
 ## Introduction
 
@@ -1366,6 +1367,37 @@ The framework builds upon several key research areas:
 - Wilder, J. W. (1978). New concepts in technical trading systems. Trend Research.
 - Bollinger, J. (2001). Bollinger on Bollinger Bands. McGraw Hill Professional.
 
+## Legal Information
+
+### Important Legal Documents
+
+Before using this software, please review the following legal documents:
+
+- **[Terms of Use](TERMS_OF_USE.md)** - Comprehensive terms governing software usage, permitted/prohibited activities, and user obligations
+- **[Privacy Policy](PRIVACY_POLICY.md)** - Data handling practices, third-party services, and privacy compliance information
+- **[Disclaimer](DISCLAIMER.md)** - Critical risk warnings, liability limitations, and regulatory compliance requirements
+
+### Key Legal Notices
+
+⚠️ **NOT FINANCIAL ADVICE**: This software is for educational and research purposes only. All predictions and analyses are informational and should not be considered financial advice.
+
+🛡️ **RISK WARNING**: Financial markets involve substantial risk of loss. Past performance does not guarantee future results. Users are solely responsible for investment decisions.
+
+📜 **USER RESPONSIBILITY**: You must comply with all applicable laws, regulations, and professional standards in your jurisdiction.
+
+🌍 **REGULATORY COMPLIANCE**: Financial professionals and regulated entities must ensure compliance with relevant securities laws and professional obligations.
+
+### Quick Legal Summary
+
+- **Educational Use Only** - Not for providing financial advice to third parties
+- **No Warranties** - Software provided "as is" without guarantees
+- **Limited Liability** - Authors not responsible for financial losses
+- **Compliance Required** - Users must follow applicable laws and regulations
+- **Privacy Respected** - No personal data collected by software authors
+- **Open Source** - MIT License with third-party component obligations
+
+For complete legal terms, please read the full documents linked above.
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -1379,49 +1411,13 @@ The framework uses several open-source libraries:
 - scikit-learn: BSD 3-Clause License
 - yfinance: Apache License 2.0
 
-## Disclaimer
-
-### Investment Disclaimer
-
-**IMPORTANT**: This software is for educational and research purposes only. The predictions and analysis provided by this framework should NOT be considered as financial advice or investment recommendations.
-
-**Risk Warning**:
-- Stock trading involves substantial risk of loss
-- Past performance does not guarantee future results
-- Machine learning models can fail unexpectedly
-- Market conditions can change rapidly
-- Always consult with qualified financial advisors before making investment decisions
-
-**Model Limitations**:
-- Predictions are based on historical data and may not reflect future market conditions
-- Black swan events and market crashes cannot be predicted reliably
-- Model performance can degrade over time due to market regime changes
-- Sentiment analysis may be biased or incomplete
-
-**Usage Responsibility**:
-- Users are solely responsible for their investment decisions
-- The authors and contributors are not liable for any financial losses
-- Test thoroughly in simulated environments before real trading
-- Use appropriate position sizing and risk management
-
-### Data Disclaimer
-
-- Market data is provided by third-party sources and may contain errors
-- Real-time data feeds may have delays or interruptions
-- Historical data may not be complete or accurate
-- News and sentiment data is subject to bias and interpretation
-
-### Software Disclaimer
-
-This software is provided "as is" without warranty of any kind. The authors make no representations about the suitability of this software for any purpose.
-
-## Support and Community
+## Support
 
 ### Getting Help
 
-- **Documentation**: Complete API reference and tutorials
-- **GitHub Issues**: Report bugs and request features
-- **Discussions**: Ask questions and share experiences
+- **Documentation**: [Complete API reference and tutorials](https://melrefaiy2018.github.io/stock_prediction_lstm/) (Coming Soon)
+- **GitHub Issues**: [Report bugs and request features](https://github.com/melrefaiy2018/stock_prediction_lstm/issues)
+- **Discussions**: [Ask questions and share experiences](https://github.com/melrefaiy2018/stock_prediction_lstm/discussions)
 - **Stack Overflow**: Tag questions with `stock-prediction-lstm`
 
 ### Community Guidelines
