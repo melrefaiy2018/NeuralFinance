@@ -1,4 +1,4 @@
-# 📈 Neural Finance: Scientific README
+# 📈 Neural Finance: : Stock Prediction with LSTM
 
 <div align="center">
   <img src="neural_finance/utils/logo.png" alt="Neural Finance Logo" width="600"/>
