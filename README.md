@@ -1,7 +1,7 @@
 # 📈 Neural Finance: Scientific README
 
 <div align="center">
-  <img src="LOGO_2_WHITE.png" alt="Neural Finance Logo" width="600"/>
+  <img src="neural_finance/utils/logo.png" alt="Neural Finance Logo" width="600"/>
 </div>
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/downloads/)
