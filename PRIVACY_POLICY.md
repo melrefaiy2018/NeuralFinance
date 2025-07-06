@@ -57,7 +57,6 @@ The Software fetches data from third-party sources, including:
 - Yahoo Finance (market data)
 - Financial news APIs (sentiment data)
 - Social media platforms (sentiment analysis)
-- Government and regulatory data sources
 
 **Important**: Each data source has its own privacy policy and terms of service that you must review and comply with.
 
