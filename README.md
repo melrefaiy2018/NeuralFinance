@@ -37,6 +37,10 @@ The framework addresses key challenges in financial prediction including: (1) no
 
 Financial time series prediction remains one of the most challenging problems in quantitative finance due to market volatility, non-linear dependencies, and the influence of external factors. Traditional econometric models often fail to capture complex patterns in high-frequency financial data.
 
+### Capabilities and Broader Applications
+
+While originally designed for stock market prediction, this framework represents a **versatile multi-modal deep learning platform** with applications far beyond traditional finance. The sophisticated dual-branch LSTM architecture, combined with enterprise-grade testing (87 test cases) and production-ready deployment capabilities, makes it invaluable for **quantitative researchers**, **financial institutions**, **fintech startups**, and **data scientists** across multiple domains. The framework excels in any scenario requiring the fusion of time series data with contextual information - from **cryptocurrency and forex trading** to **energy demand forecasting**, **retail sales prediction**, **real estate valuation**, and **pharmaceutical development timelines**. Its modular design allows seamless adaptation to new data sources and domains, while the comprehensive feature engineering pipeline (15+ technical indicators) can be easily extended for domain-specific metrics. The package serves as both a **complete production solution** for financial applications and a **research-grade foundation** for academic studies in time series forecasting, sentiment analysis, and multi-modal deep learning. With its robust API, real-time capabilities, and statistical validation framework, it represents months of development time condensed into a single, well-tested package that can accelerate time-to-market for ML-driven applications across industries. Whether you're building algorithmic trading systems, conducting academic research, developing fintech products, or exploring AI applications in other time-sensitive domains, this framework provides the sophisticated infrastructure needed to handle complex, real-world prediction challenges with scientific rigor and production reliability.
+
 This framework implements a **multi-modal deep learning approach** that combines:
 
 1. **Temporal Pattern Recognition**: LSTM networks capture both short-term and long-term dependencies in price movements
@@ -143,7 +147,13 @@ from stock_prediction_lstm import StockAnalyzer
 import pandas as pd
 
 # Initialize the analyzer
-analyzer = StockAnalyzer()
+analyzer = StockAnalyzer(
+    lstm_units=128,
+    dropout_rate=0.2,
+    epochs=100,
+    batch_size=32,
+    sequence_length=60
+)
 
 # Run comprehensive analysis
 model, data, future_prices, future_dates = analyzer.run_analysis_for_stock(
@@ -225,27 +235,6 @@ config = ModelConfig(
 
 # Initialize with custom configuration
 analyzer = StockAnalyzer(config=config)
-
-# Show configuration details
-print(f"\nConfiguration Summary:")
-print(f"- LSTM Architecture: {config.lstm_units} units with dropout {config.dropout_rates}")
-print(f"- Training: {config.epochs} epochs, batch size {config.batch_size}")
-print(f"- Data: {config.sequence_length} day lookback, {config.prediction_horizon} day forecast")
-print(f"- Technical indicators: {config.technical_indicators}")
-print(f"- Sentiment sources: {config.sentiment_sources}")
-
-# Example usage (commented out since it requires API keys and data)
-# Uncomment the following lines once you have configured your API keys:
-# 
-# print("\nRunning analysis for AAPL...")
-# model, data, predictions = analyzer.run_analysis_for_stock("AAPL", period="1y")
-# if model and predictions:
-#     print(f"Predicted prices for next {config.prediction_horizon} days:")
-#     for i, price in enumerate(predictions):
-#         print(f"Day {i+1}: ${price:.2f}")
-
-print("\n✅ ModelConfig successfully imported and configured!")
-print("📝 To run actual analysis, configure your Alpha Vantage API key first.")
 ```
 
 ### Multi-Asset Portfolio Analysis
